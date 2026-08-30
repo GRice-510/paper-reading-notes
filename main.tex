@@ -1,9 +1,6 @@
-\documentclass[a4paper,11pt]{ltjsarticle}
+\documentclass[a4paper,11pt]{jsarticle}
 
-\usepackage[margin=22mm]{geometry}
-\usepackage[hidelinks]{hyperref}
-
-\setcounter{tocdepth}{2}
+\input{macro_jsarticle}
 
 \title{Paper Reading Notes}
 \author{}
@@ -16,9 +13,8 @@
 \clearpage
 
 \input{sections/moduli-dynamics}
-\input{sections/modular-cosmology}
-\input{sections/inflation}
-\input{sections/string-phenomenology}
-\input{sections/uncategorized}
+
+\bibliographystyle{yautphys}
+\bibliography{references}
 
 \end{document}
