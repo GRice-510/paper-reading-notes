@@ -125,6 +125,15 @@ PDFを生成する場合も同じルールを適用する。
 - 書誌情報を推測で埋めない。不明な field は省略する。
 - bibliography style は `yautphys.bst` を使用する。
 
+## PDF・レイアウト
+
+- 各論文タイトルである `\subsection` 見出しは `RuriIro` で表示し、論文同士の境界を視覚的に明確にする。
+- `section` 見出しは通常の黒色のままにする。
+- **各 section は必ず新しいページから開始する。** `main.tex` では、先頭 section を除き各 `\input{sections/...}` の直前に `\clearpage` を置く。
+- **参考文献は必ず新しいページから開始する。** `\bibliographystyle` / `\bibliography` の直前に `\clearpage` を置く。
+- 新しい section を `main.tex` に追加するときも、この改ページ規則を維持する。
+- PDFを生成した場合は、論文タイトルの色、section ごとの改ページ、参考文献前の改ページが反映されていることを確認する。
+
 ## テーマ分類
 
 各論文は適切な `sections/*.tex` から `\input{papers/<arXiv番号>}` してPDFに含める。
@@ -163,6 +172,6 @@ PDFを生成する場合も同じルールを適用する。
 
 - `main.tex` は `jsarticle` を使用し、pLaTeX + dvipdfmx でコンパイルする。
 - 共通 package・レイアウト・数式マクロは、ユーザー提供の `macro_jsarticle.tex` を `main.tex` から読み込む。
-- `macro.tex` は別用途マクロとして保持し、必要がない限り `main.tex`` からは読み込まない。
+- `macro.tex` は別用途マクロとして保持し、必要がない限り `main.tex` からは読み込まない。
 - 各 paper ファイル単体では document class や package を宣言しない。
 - `papers/*.tex` は `main.tex` から読み込まれる本文断片として書く。
