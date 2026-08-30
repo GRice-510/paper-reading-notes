@@ -2,46 +2,50 @@
 
 ChatGPT / Codex との論文読解を蓄積し、最終的に1冊のPDFとして参照できる形にまとめるための研究ノートです。
 
-## 方針
+> AI編集時は、必ず最初に `AGENTS.md` と `papers/_template.tex` を確認してください。
 
-- 1論文につき1つの `papers/*.tex` を作る。
-- 各論文は `\subsection{論文タイトル --- arXiv:XXXX.XXXXX}` として管理する。
-- 基本カードは短く保ち、詳細な議論が生じた論文だけ追記する。
-- 書誌情報は INSPIRE を基準に `references.bib` に蓄積する。
-- テーマごとの `sections/*.tex` から各論文ファイルを `\input` し、`main.tex` から1つのPDFにまとめる。
+## 基本カード
 
-## LaTeX
+1論文につき1つの `papers/*.tex` を作り、各論文は次の固定形式をデフォルトとします。
 
-- 本文は `jsarticle` を使用する。
-- 共通設定・数式マクロは `macro_jsarticle.tex` を `main.tex` から読み込む。
-- `macro.tex` は既存の別用途マクロとして保存しておく。
-- bibliography style は `yautphys.bst` を使用する。
+```latex
+\subsection{Paper Title --- arXiv:XXXX.XXXXX}
+
+\textbf{Authors:} Author A, Author B, Author C
+
+\paragraph{主な主張}
+...
+
+\paragraph{新規性}
+...
+
+\paragraph{位置付け}
+...
+```
+
+デフォルトでは Authors / 主な主張 / 新規性 / 位置付け以外を追加しません。
+コメントや補足は、ユーザーがその論文について明示的に追加を指示した場合だけ追記します。
+各本文項目は原則1文、長くても2文程度に抑えます。
+
+書誌情報は INSPIRE を基準に `references.bib` に集約し、本文中では `\cite{...}` で参照します。
 
 ## 構成
 
-```text
-paper-reading-notes/
-├── README.md
-├── AGENTS.md
-├── main.tex
-├── macro_jsarticle.tex
-├── macro.tex
-├── yautphys.bst
-├── references.bib
-├── .gitignore
-├── sections/
-│   ├── moduli-dynamics.tex
-│   ├── modular-cosmology.tex
-│   ├── inflation.tex
-│   ├── string-phenomenology.tex
-│   └── uncategorized.tex
-└── papers/
-    └── _template.tex
-```
+- `papers/`: 1論文1ファイル
+- `sections/`: テーマ別に各論文を `\input`
+- `references.bib`: 参考文献
+- `main.tex`: 全体を1つのPDFへまとめる
+- `AGENTS.md`: AI編集時の最優先ルール
 
-## ビルド
+## 通常運用
 
-pLaTeX + dvipdfmx を用います。
+GitHub 上の LaTeX ソースを正本とします。
+論文追加・修正時は原則としてリポジトリだけを更新し、PDFは明示的に求められた場合のみ生成します。
+
+## LaTeX
+
+本文は `jsarticle`、pLaTeX + dvipdfmx を使用します。
+共通設定・数式マクロは `macro_jsarticle.tex` から読み込み、bibliography style は `yautphys.bst` を使用します。
 
 ```bash
 platex main.tex
