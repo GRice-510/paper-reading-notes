@@ -64,6 +64,7 @@ ChatGPTとの対話によって、次のような内容が実際に明確にな�
 - 本文では書誌情報を重複して長く書かない。
 - DOI、journal、year 等は基本カードには不要。必要なら `references.bib` に保持する。
 - 情報を推測で補わない。確認できない場合は明示する。
+- bibliography style は `yautphys.bst` を使用する。
 
 ## テーマ分類
 
@@ -72,6 +73,8 @@ ChatGPTとの対話によって、次のような内容が実際に明確にな�
 既存テーマで自然に分類できない場合は、無理に分類せず `sections/uncategorized.tex` に入れる。新しいテーマが十分にまとまった段階で section を新設する。
 
 同じ論文を複数 section から `\input` して重複掲載しない。
+
+新しい section に最初の論文を追加したときは、その section ファイルが `main.tex` から読み込まれていることも確認する。空の section は PDF に不要な見出しを作らないよう `main.tex` から読み込まなくてよい。
 
 ## 編集時のルール
 
@@ -94,6 +97,8 @@ ChatGPTとの対話によって、次のような内容が実際に明確にな�
 
 ## LaTeX
 
-- `main.tex` は LuaLaTeX でコンパイルする。
-- 独自コマンドは必要最小限にし、各 paper ファイル単体では document class や package を宣言しない。
+- `main.tex` は `jsarticle` を使用し、pLaTeX + dvipdfmx でコンパイルする。
+- 共通 package・レイアウト・数式マクロは、ユーザー提供の `macro_jsarticle.tex` を `main.tex` から読み込む。
+- `macro.tex` はユーザー提供の別用途マクロとして保持し、明示的な必要がない限り `main.tex` からは読み込まない。
+- 各 paper ファイル単体では document class や package を宣言しない。
 - `papers/*.tex` は `main.tex` から読み込まれる本文断片として書く。
