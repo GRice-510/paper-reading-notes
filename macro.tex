@@ -1,0 +1,138 @@
+%\usepackage[margin=25mm]{geometry}
+%\setlength{\textwidth}{49zw}
+%\setlength{\oddsidemargin}{-0.25in}
+%\setlength{\topmargin}{-0.5in}
+
+% 数式,文
+\renewcommand{\theequation}{\thesection.\arabic{equation}}
+\renewcommand{\thefigure}{\thechapter.\arabic{figure}}
+\renewcommand{\thetable}{\thechapter.\arabic{table}}
+\makeatletter
+\@addtoreset{equation}{section}
+\@addtoreset{figure}{chapter}
+\@addtoreset{table}{chapter}
+\makeatother
+
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage[bbgreekl]{mathbbol}
+  \DeclareSymbolFontAlphabet{\mathbb}{AMSb}
+  \DeclareSymbolFontAlphabet{\mathbbl}{bbold}
+  \DeclareMathSymbol{\bbepsilon}{\mathord}{bbold}{"0F}
+\usepackage{bm}
+\usepackage{mathtools}
+
+\usepackage{ytableau}
+\ytableausetup{centertableaux,mathmode,boxsize=1em}
+
+\allowdisplaybreaks
+
+
+% 画像
+\usepackage[dvipdfmx]{graphicx}
+%\usepackage[format=hang,small,bf]{caption}
+\usepackage[subrefformat=parens]{subcaption}
+\captionsetup{compatibility=false}
+\usepackage{ulem}
+\usepackage{wrapfig}
+\usepackage[pgf]{adjustbox}
+
+%ハイパーリンク
+\usepackage[dvipdfmx]{hyperref}
+\usepackage[dvipdfmx]{pxjahyper}
+\hypersetup{
+  colorlinks,
+  citecolor=TokiwaIro,
+  linkcolor=RuriIro,
+  urlcolor=RuriIro,
+  linktocpage}
+\setcounter{tocdepth}{3}
+
+%cite
+\usepackage{cite}
+
+
+%===============================================================%
+%color
+%===============================================================%
+\usepackage{color}
+\definecolor{RuriIro}{rgb}{0.,0.28,0.60}
+\definecolor{TokiwaIro}{rgb}{0.,0.39,0.16}
+\definecolor{EnjiIro}{rgb}{0.70,0.25,0.29}
+
+\definecolor{dred}{rgb}{0.7,0.15,0.09}
+\definecolor{dblue}{rgb}{0,0.12,0.64}
+\definecolor{dgreen}{rgb}{0.2,0.51,0.19}
+\definecolor{pegn}{rgb}{0.33,0.51,0.14}
+
+\newcommand{\dred}[1]{{\color{dred} #1}}
+\newcommand{\dblue}[1]{{\color{dblue} #1}}
+\newcommand{\dgreen}[1]{{\color{dgreen} #1}}
+
+\newcommand{\red}[1]{{\color{red} #1}}
+\newcommand{\blue}[1]{{\color{blue} #1}}
+\newcommand{\enji}[1]{{\color{EnjiIro} #1}}
+
+\newcommand{\todo}[1]{{\color{EnjiIro} #1}}
+%===============================================================%
+%macro
+%===========%
+%数学記号%
+%===============================================================%
+
+\newcommand{\nn}{\nonumber}
+%
+\renewcommand{\mc}{\mathcal}
+\newcommand{\mr}{\mathrm}
+\newcommand{\ms}{\mathsf}
+\newcommand{\mb}{\mathbf}
+\newcommand{\mbb}{\mathbb}
+%
+\newcommand*{\tr}[1]{\mathrm{tr}\,{#1}}
+\newcommand*{\Tr}[1]{\mathrm{Tr}\,{#1}}
+\newcommand*{\re}[1]{\mathrm{Re}\,{#1}}
+\newcommand*{\im}[1]{\mathrm{Im}\,{#1}}
+\renewcommand{\Re}{\mathop{\mathrm{Re}}}
+\renewcommand{\Im}{\mathop{\mathrm{Im}}}
+%
+\newcommand*{\del}{\partial}
+\newcommand*{\diff}{\mr{d}}
+\newcommand*{\dd}{\mr{d}}
+%
+\newcommand*{\iu}{\mr{i}}
+\newcommand*{\ee}{\mr{e}}
+%
+\newcommand*{\ol}[1]{\overline{#1}}
+%
+\newcommand*{\vev}[1]{\langle{#1}\rangle}
+\newcommand*{\ket}[1]{\left|{#1}\right>}
+\newcommand*{\bra}[1]{\left<{#1}\right|}
+%
+\newcommand{\FRAC}[2]{
+  \leavevmode\kernel.1em
+  \raise.5ex
+  \hbox{\the\scriptfont0 #1}
+  \kern-1.em/\kern-.15em
+  \lower.25ex
+  \hbox{\the\scriptfont0 #2}
+}
+
+\newcommand{\SL}{\mathrm{SL}}
+\newcommand{\GL}{\mathrm{GL}}
+\newcommand{\SO}{\mathrm{SO}}
+\newcommand{\SU}{\mathrm{SU}}
+\newcommand{\rU}{\mathrm{U}}
+
+%Pfaffian%
+\newcommand*{\pf}[1]{\text{Pf}\left({#1}\right)}
+%===============================================================%
+%ギリシャ数字%
+%===============================================================%
+\newcommand*{\one}{$\mathrm{I}$}
+\newcommand*{\two}{$\mathrm{I}\hspace{-1.2pt}\mathrm{I}$}
+\newcommand*{\three}{$\mathrm{I}\hspace{-1.2pt}\mathrm{I}\hspace{-1.2pt}\mathrm{I}$}
+%===============================================================%
+%その他%
+%===============================================================%
+\newcommand*{\kahler}{K\"{a}hler~}
+\newcommand*{\cp}{$\mathcal{CP}$}
+\newcommand*{\mcp}{\mathcal{CP}}
