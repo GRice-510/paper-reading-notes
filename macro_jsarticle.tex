@@ -1,0 +1,163 @@
+%上下幅設定
+\setlength{\textheight}{\paperheight}   % 本文領域を一旦紙面の高さにする
+\setlength{\voffset}{-0.4truemm}      % 上の余白を39mm（=1inch+13.6mm）に
+\setlength{\headheight}{0truemm}  % 
+\setlength{\headsep}{0truemm}     % ヘッダの分だけ上の余白を小さくする
+\addtolength{\textheight}{-1.8in} 
+
+%左右幅設定
+\setlength{\fullwidth}{\paperwidth}     % 全体の幅（テキスト領域の幅ではない）を一旦紙面幅にする
+\setlength{\hoffset}{-0.4truemm}
+\setlength{\evensidemargin}{0truemm} % 左の余白を25mm(=1inch-0.4mm)に
+\setlength{\oddsidemargin}{0truemm}  % 上に同じ
+\addtolength{\fullwidth}{-50truemm}     % 左右余白分だけ本文領域の幅を小さくする。
+\setlength{\textwidth}{\fullwidth}      % テキスト幅を全体の幅に一致させる
+
+% 数式,文
+\renewcommand{\theequation}{\thesection.\arabic{equation}}
+\renewcommand{\thefigure}{\thesection.\arabic{figure}}
+\renewcommand{\thetable}{\thesection.\arabic{table}}
+\makeatletter
+\@addtoreset{equation}{section}
+\@addtoreset{figure}{section}
+\@addtoreset{table}{section}
+\makeatother
+
+\usepackage{amsmath,amsfonts,amssymb} 
+\usepackage{amsthm} 
+\usepackage[bbgreekl]{mathbbol}
+  \DeclareSymbolFontAlphabet{\mathbb}{AMSb}
+  \DeclareSymbolFontAlphabet{\mathbbl}{bbold}
+  \DeclareMathSymbol{\bbepsilon}{\mathord}{bbold}{"0F}
+\usepackage{bm}
+\usepackage{mathtools}
+\usepackage{physics}
+
+\usepackage{centernot}
+
+\usepackage{ytableau}
+\ytableausetup{centertableaux,mathmode,boxsize=1em}
+
+\allowdisplaybreaks
+
+
+% 枠をかけるようにする
+\usepackage{ascmac}
+
+% 画像
+\usepackage[dvipdfmx]{graphicx}
+%\usepackage[format=hang,small,bf]{caption}
+\usepackage[subrefformat=parens]{subcaption}
+\captionsetup{compatibility=false}
+\usepackage{ulem}
+\usepackage{wrapfig}
+\usepackage[pgf]{adjustbox}
+
+%ハイパーリンク
+\usepackage[dvipdfmx]{hyperref}
+\usepackage[dvipdfmx]{pxjahyper}
+\hypersetup{
+  colorlinks,
+  citecolor=TokiwaIro,
+  linkcolor=RuriIro,
+  urlcolor=RuriIro,
+  linktocpage}
+\setcounter{tocdepth}{3}
+
+%cite
+\usepackage{cite}
+
+
+%===============================================================%
+%color
+%===============================================================%
+\usepackage{color}
+\definecolor{RuriIro}{rgb}{0.,0.28,0.60}
+\definecolor{TokiwaIro}{rgb}{0.,0.39,0.16}
+\definecolor{EnjiIro}{rgb}{0.70,0.25,0.29}
+
+\definecolor{dred}{rgb}{0.7,0.15,0.09}
+\definecolor{dblue}{rgb}{0,0.12,0.64}
+\definecolor{dgreen}{rgb}{0.2,0.51,0.19}
+\definecolor{pegn}{rgb}{0.33,0.51,0.14}
+
+\newcommand{\dred}[1]{{\color{dred} #1}}
+\newcommand{\dblue}[1]{{\color{dblue} #1}}
+\newcommand{\dgreen}[1]{{\color{dgreen} #1}}
+
+\newcommand{\red}[1]{{\color{red} #1}}
+\newcommand{\blue}[1]{{\color{blue} #1}}
+\newcommand{\enji}[1]{{\color{EnjiIro} #1}}
+
+\newcommand{\todo}[1]{{\color{EnjiIro} #1}}
+%===============================================================%
+%macro
+%===========%
+%数学記号%
+%===============================================================%
+
+\newcommand{\nn}{\nonumber}
+%
+\renewcommand{\mc}{\mathcal}
+\newcommand{\mr}{\mathrm}
+\newcommand{\ms}{\mathsf}
+\newcommand{\mb}{\mathbf}
+\newcommand{\mbb}{\mathbb}
+%
+% \newcommand*{\tr}[1]{\mathrm{tr}\,{#1}}
+% \newcommand*{\Tr}[1]{\mathrm{Tr}\,{#1}}
+\newcommand*{\re}[1]{\mathrm{Re}\,{#1}}
+\newcommand*{\im}[1]{\mathrm{Im}\,{#1}}
+\renewcommand{\Re}{\mathop{\mathrm{Re}}}
+\renewcommand{\Im}{\mathop{\mathrm{Im}}}
+\renewcommand*{\det}{\mathrm{det}\,}
+\renewcommand*{\tr}{\mathrm{tr}\,}
+%
+\newcommand*{\del}{\partial}
+\newcommand*{\diff}{\mr{d}}
+% \newcommand*{\dd}{\mr{d}}
+%
+\newcommand*{\iu}{\mr{i}}
+\newcommand*{\ee}{\mr{e}}
+\renewcommand{\exp}[1]{\mathrm{exp}\left[ #1 \right]}
+%
+\newcommand*{\ol}[1]{\overline{#1}}
+%
+\renewcommand*{\vev}[1]{\left\langle{#1}\right\rangle}
+% \newcommand*{\ket}[1]{\left|{#1}\right>}
+% \newcommand*{\bra}[1]{\left<{#1}\right|}
+\renewcommand{\abs}[1]{\left|{#1}\right|}
+%
+
+\newcommand{\SL}{\mathrm{SL}}
+\newcommand{\GL}{\mathrm{GL}}
+\newcommand{\SO}{\mathrm{SO}}
+\newcommand{\SU}{\mathrm{SU}}
+\newcommand{\rU}{\mathrm{U}}
+
+\newcommand{\GeV}{\mathrm{GeV}}
+\newcommand{\MeV}{\mathrm{MeV}}
+\newcommand{\TeV}{\mathrm{TeV}}
+\newcommand{\keV}{\mathrm{keV}}
+\newcommand{\eV}{\mathrm{eV}}
+\newcommand{\geV}{\mathrm{GeV}}
+\newcommand{\meV}{\mathrm{MeV}}
+\newcommand{\teV}{\mathrm{TeV}}
+\renewcommand{\keV}{\mathrm{keV}}
+\renewcommand{\eV}{\mathrm{eV}}
+%Pfaffian%
+\newcommand*{\pf}[1]{\text{Pf}\left({#1}\right)}
+%===============================================================%
+%ギリシャ数字%
+%===============================================================%
+\newcommand*{\one}{$\mathrm{I}$}
+\newcommand*{\two}{$\mathrm{I}\hspace{-1.2pt}\mathrm{I}$}
+\newcommand*{\three}{$\mathrm{I}\hspace{-1.2pt}\mathrm{I}\hspace{-1.2pt}\mathrm{I}$}
+%===============================================================%
+%その他%
+%===============================================================%
+\newcommand*{\kahler}{K\"{a}hler~}
+\renewcommand*{\cp}{$\mathcal{CP}$}
+\newcommand*{\mcp}{\mathcal{CP}}
+\newcommand{\pl}{\mathrm{Pl}}
+\newcommand{\vs}[1]{\vspace{{#1}pt}}
