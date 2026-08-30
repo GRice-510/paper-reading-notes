@@ -82,8 +82,12 @@
 \definecolor{pegn}{rgb}{0.33,0.51,0.14}
 
 % 論文タイトル（subsection）の視認性を上げる
-\usepackage{sectsty}
-\subsectionfont{\color{RuriIro}}
+\makeatletter
+\renewcommand{\subsection}{\@startsection{subsection}{2}{\z@}%
+  {\Cvs \@plus.5\Cdp \@minus.2\Cdp}% 前アキ
+  {.5\Cvs \@plus.3\Cdp}% 後アキ
+  {\normalfont\large\headfont\color{RuriIro}}}
+\makeatother
 
 \newcommand{\dred}[1]{{\color{dred} #1}}
 \newcommand{\dblue}[1]{{\color{dblue} #1}}
