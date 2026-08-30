@@ -10,6 +10,13 @@ ChatGPT / Codex との論文読解を蓄積し、最終的に1冊のPDFとして
 - 書誌情報は INSPIRE を基準に `references.bib` に蓄積する。
 - テーマごとの `sections/*.tex` から各論文ファイルを `\input` し、`main.tex` から1つのPDFにまとめる。
 
+## LaTeX
+
+- 本文は `jsarticle` を使用する。
+- 共通設定・数式マクロは `macro_jsarticle.tex` を `main.tex` から読み込む。
+- `macro.tex` は既存の別用途マクロとして保存しておく。
+- bibliography style は `yautphys.bst` を使用する。
+
 ## 構成
 
 ```text
@@ -17,6 +24,9 @@ paper-reading-notes/
 ├── README.md
 ├── AGENTS.md
 ├── main.tex
+├── macro_jsarticle.tex
+├── macro.tex
+├── yautphys.bst
 ├── references.bib
 ├── .gitignore
 ├── sections/
@@ -31,10 +41,14 @@ paper-reading-notes/
 
 ## ビルド
 
-LuaLaTeX を用います。
+pLaTeX + dvipdfmx を用います。
 
 ```bash
-latexmk -lualatex main.tex
+platex main.tex
+bibtex main
+platex main.tex
+platex main.tex
+dvipdfmx main.dvi
 ```
 
 生成された `main.pdf` はGit管理しません。
