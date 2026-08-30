@@ -51,8 +51,11 @@ A4 1ページに3--5本程度が収まる密度を目安とする。
 - 各論文自身を本文中で `\cite{...}` する。
 - 関連先行研究に言及する場合も適切に `\cite{...}` を付ける。
 - 書誌情報は `references.bib` に集約する。
-- BibTeX key はリポジトリ内部で読みやすい名前を使い、INSPIRE key に合わせる必要はない。
-- 書誌情報そのものは可能な限り INSPIRE、arXiv、出版社等で確認する。
+- BibTeX は原則として INSPIRE が出力する形式をそのまま使用する。citation key も、取得できる場合は `Abe:2026cmt` のような INSPIRE の key を使用する。
+- INSPIRE の BibTeX を直接取得できない場合は、arXiv・出版社等で書誌情報を確認した上で、INSPIRE 出力に近い形式の `@article` entry を作成する。その場合の key は `Surname:YearKeyword` のようなローカルな識別可能な形式でよい。
+- 未出版論文では原則として `author`, `title`, `eprint`, `archivePrefix`, `primaryClass`, `reportNumber`（存在する場合）, `month`, `year` を保持する。
+- 出版済み論文では上記に加えて `doi`, `journal`, `volume`, `number`（存在する場合）, `pages`, `year` を保持する。
+- 書誌情報を推測で埋めない。不明な field は省略する。
 - bibliography style は `yautphys.bst` を使用する。
 
 ## テーマ分類
