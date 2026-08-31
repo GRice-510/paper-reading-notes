@@ -4,9 +4,11 @@ ChatGPT / Codex との論文読解を蓄積し、最終的に1冊のPDFとして
 
 ## 最新版PDF
 
-**[paper-reading-notes.pdf](./paper-reading-notes.pdf)**
+**ブラウザ閲覧用（GitHub Pages）:** [Paper Reading Notes](https://grice-510.github.io/paper-reading-notes/)
 
-`main` ブランチの LaTeX / BibTeX が更新されると、GitHub Actions が自動でPDFを再生成し、このファイルを最新版へ更新します。
+**リポジトリ内:** [paper-reading-notes.pdf](./paper-reading-notes.pdf)
+
+`main` ブランチの LaTeX / BibTeX が更新されると、GitHub Actions がPDFを再生成します。Pages が有効な場合は、生成済みPDFがブラウザ閲覧用URLにも自動デプロイされます。
 
 > AI編集時は、必ず最初に `AGENTS.md` と `papers/_template.tex` を確認してください。
 
@@ -55,6 +57,7 @@ ChatGPT / Codex との論文読解を蓄積し、最終的に1冊のPDFとして
 - `main.tex`: 全体を1つのPDFへまとめる
 - `paper-reading-notes.pdf`: GitHub Actions が更新する閲覧用最新版PDF
 - `.github/workflows/build-pdf.yml`: PDF自動ビルド
+- `.github/workflows/deploy-pages.yml`: 最新版PDFをGitHub Pagesへ自動デプロイ
 - `.latexmkrc`: pLaTeX + dvipdfmx 用の latexmk 設定
 - `AGENTS.md`: AI編集時の最優先ルール
 
@@ -62,6 +65,7 @@ ChatGPT / Codex との論文読解を蓄積し、最終的に1冊のPDFとして
 
 GitHub 上の LaTeX ソースを正本とします。
 論文追加・修正時はリポジトリのソースを更新すれば、PDFは GitHub Actions により自動更新されます。
+GitHub Pages を有効化している場合、ブラウザでは `https://grice-510.github.io/paper-reading-notes/` を開けば最新版PDFへ直接移動できます。
 レイアウト変更時など、目視確認が必要な場合のみ手元でPDFを再生成して確認します。
 
 ## LaTeX
