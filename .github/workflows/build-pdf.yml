@@ -1,0 +1,69 @@
+name: Build PDF
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.tex"
+      - "references.bib"
+      - "yautphys.bst"
+      - ".latexmkrc"
+      - ".github/workflows/build-pdf.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: paper-reading-notes-pdf
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Compile PDF
+        uses: xu-cheng/latex-action@v4
+        with:
+          root_file: main.tex
+          texlive_version: 2026
+          args: -file-line-error -halt-on-error -interaction=nonstopmode
+
+      - name: Prepare published PDF
+        run: cp main.pdf paper-reading-notes.pdf
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: paper-reading-notes
+          path: paper-reading-notes.pdf
+          retention-days: 30
+
+      - name: Commit latest PDF
+        shell: bash
+        run: |
+          git fetch origin main
+
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+            echo "A newer source commit exists; skip publishing this stale PDF."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add paper-reading-notes.pdf
+
+          if git diff --cached --quiet; then
+            echo "PDF is unchanged."
+            exit 0
+          fi
+
+          git commit -m "chore: update generated PDF [skip ci]"
+          git push origin HEAD:main
