@@ -2,6 +2,12 @@
 
 ChatGPT / Codex との論文読解を蓄積し、最終的に1冊のPDFとして参照できる形にまとめるための研究ノートです。
 
+## 最新版PDF
+
+**[paper-reading-notes.pdf](./paper-reading-notes.pdf)**
+
+`main` ブランチの LaTeX / BibTeX が更新されると、GitHub Actions が自動でPDFを再生成し、このファイルを最新版へ更新します。
+
 > AI編集時は、必ず最初に `AGENTS.md` と `papers/_template.tex` を確認してください。
 
 ## 基本カード
@@ -33,8 +39,8 @@ ChatGPT / Codex との論文読解を蓄積し、最終的に1冊のPDFとして
 
 論文が現在の会話から一意に特定できる場合、毎回長いプロンプトを書く必要はありません。
 
-- 「概要を追加して」「ノートに反映して」「これを反映して」 → リポジトリを更新。PDFは生成しない。
-- 「概要をPDFに追加して」「PDFにも反映して」「PDFに追加して」 → リポジトリを更新し、最新版PDFも生成する。
+- 「概要を追加して」「ノートに反映して」「これを反映して」 → リポジトリを更新。PDFは GitHub Actions が自動更新する。
+- 「概要をPDFに追加して」「PDFにも反映して」「PDFに追加して」 → 同じくリポジトリを更新し、GitHub Actions によるPDF更新までを前提とする。
 
 これらの指示を受けたAIは、明示されていなくても編集前に `AGENTS.md` と `papers/_template.tex` を確認します。
 
@@ -47,18 +53,23 @@ ChatGPT / Codex との論文読解を蓄積し、最終的に1冊のPDFとして
 - `sections/`: テーマ別に各論文を `\input`
 - `references.bib`: 参考文献
 - `main.tex`: 全体を1つのPDFへまとめる
+- `paper-reading-notes.pdf`: GitHub Actions が更新する閲覧用最新版PDF
+- `.github/workflows/build-pdf.yml`: PDF自動ビルド
+- `.latexmkrc`: pLaTeX + dvipdfmx 用の latexmk 設定
 - `AGENTS.md`: AI編集時の最優先ルール
 
 ## 通常運用
 
 GitHub 上の LaTeX ソースを正本とします。
-論文追加・修正時は原則としてリポジトリだけを更新し、PDFは明示的に求められた場合のみ生成します。
-「PDFに追加して」「PDFにも反映して」はPDF生成の明示指示として扱います。
+論文追加・修正時はリポジトリのソースを更新すれば、PDFは GitHub Actions により自動更新されます。
+レイアウト変更時など、目視確認が必要な場合のみ手元でPDFを再生成して確認します。
 
 ## LaTeX
 
 本文は `jsarticle`、pLaTeX + dvipdfmx を使用します。
 共通設定・数式マクロは `macro_jsarticle.tex` から読み込み、bibliography style は `yautphys.bst` を使用します。
+
+手元では次の従来手順でもビルドできます。
 
 ```bash
 platex main.tex
@@ -68,4 +79,12 @@ platex main.tex
 dvipdfmx main.dvi
 ```
 
-生成された `main.pdf` はGit管理しません。
+または `.latexmkrc` を使って、
+
+```bash
+latexmk main.tex
+```
+
+でもビルドできます。
+
+`main.pdf` は中間的なローカル生成物としてGit管理せず、公開用の `paper-reading-notes.pdf` のみ GitHub Actions が更新します。
