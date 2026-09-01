@@ -38,18 +38,28 @@ jobs:
         shell: bash
         run: |
           mkdir -p _site
+          PAGE_VERSION="$(git rev-parse --short=12 HEAD)"
+          VERSIONED_PDF="paper-reading-notes-${PAGE_VERSION}.pdf"
+
+          # Keep the stable URL for bookmarks, but redirect the Pages root to a
+          # versioned filename so browser/PDF-viewer caches cannot show an old PDF.
           cp paper-reading-notes.pdf _site/paper-reading-notes.pdf
-          cat > _site/index.html <<'EOF'
+          cp paper-reading-notes.pdf "_site/${VERSIONED_PDF}"
+
+          cat > _site/index.html <<EOF
           <!doctype html>
           <html lang="ja">
           <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width,initial-scale=1">
-            <meta http-equiv="refresh" content="0; url=paper-reading-notes.pdf">
+            <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+            <meta http-equiv="pragma" content="no-cache">
+            <meta http-equiv="expires" content="0">
+            <meta http-equiv="refresh" content="0; url=${VERSIONED_PDF}">
             <title>Paper Reading Notes</title>
           </head>
           <body>
-            <p><a href="paper-reading-notes.pdf">最新版PDFを開く</a></p>
+            <p><a href="${VERSIONED_PDF}">最新版PDFを開く</a></p>
           </body>
           </html>
           EOF
