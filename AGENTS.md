@@ -1,6 +1,6 @@
 # AGENTS.md
 
-このリポジトリは、ChatGPT / Codex との論文読解を研究ノートとして蓄積するためのものです。
+このリポジトリは、ChatGPT / Codexとの論文読解を研究ノートとして蓄積するためのものです。
 
 ## 最重要ルール
 
@@ -23,11 +23,9 @@
 
 これらを受けたら、明示されていなくても **編集前に必ず `AGENTS.md` と `papers/_template.tex` を読み、以下の全ルールに従う。**
 
-動作は次のように解釈する。
-
-- 「追加して」「ノートに反映して」「これを反映して」: GitHub 上の LaTeX / BibTeX を更新する。PDF は GitHub Actions が自動更新する。
-- 「PDFに追加して」「PDFにも反映して」: 同様に GitHub 上の LaTeX / BibTeX を更新し、GitHub Actions による `paper-reading-notes.pdf` の自動更新を前提とする。
-- 「PDF見せて」「最新版PDF」: 可能ならリポジトリに保存済みの `paper-reading-notes.pdf` を使い、通常はゼロから再コンパイルしない。ソース更新直後で自動ビルドが未完了、またはレイアウト検証が必要な場合のみ手元で再生成する。
+- 「追加して」「ノートに反映して」「これを反映して」: GitHub上のLaTeX / BibTeXを更新する。PDFとHTMLはGitHub Actionsが自動更新する。
+- 「PDFに追加して」「PDFにも反映して」: 同様にソースを更新し、ActionsによるPDF・HTML自動更新を前提とする。
+- 「PDF見せて」「最新版PDF」: 可能なら生成済みの `paper-reading-notes.pdf` を使い、通常はゼロから再コンパイルしない。ソース更新直後で自動ビルドが未完了、またはレイアウト検証が必要な場合のみ手元で再生成する。
 
 現在の会話だけでは対象論文を一意に特定できない場合のみ確認する。
 
@@ -36,22 +34,14 @@
 論文を新規追加・更新するときは、リポジトリを編集するだけで終わらない。
 **実際に保存する内容をチャットにも必ず表示する。**
 
-通常は、次を読みやすい Markdown でチャットに示す。
-
-- Authors
-- 主な主張
-- 新規性
-- 位置付け
-
+通常はAuthors / 主な主張 / 新規性 / 位置付けを読みやすいMarkdownで示す。
 ユーザーの明示指示でコメント等を追加した場合は、その追加内容もチャットに示す。
 「更新しました」「反映しました」だけで終えてはいけない。
-
-ただし、ユーザーが単に「PDF見せて」「最新版PDF」など、既存内容のPDF表示だけを求めた場合は、本文カードを繰り返さずPDFのみ返してよい。
+ただし、単に「PDF見せて」など既存内容のPDF表示だけを求めた場合は、本文カードを繰り返さずPDFのみ返してよい。
 
 ## 基本原則
 
-各論文は `papers/` 以下の独立した LaTeX ファイルとして管理する。
-ファイル名は原則として arXiv 番号を用いる。
+各論文は `papers/` 以下の独立したLaTeXファイルとして管理する。ファイル名は原則としてarXiv番号を用いる。
 
 ```text
 papers/2307.13230.tex
@@ -76,114 +66,101 @@ papers/2307.13230.tex
 
 ## 本文カードの固定フォーマット
 
-デフォルトで本文カードに置くのは、次の4要素だけである。
+デフォルトの本文カードは **Authors + 主な主張 / 新規性 / 位置付け** のみ。
+Authors以外の書誌情報（INSPIRE key、DOI、journal、volume、pages、year、report number等）は本文カードに書かず、BibTeXと参考文献欄に集約する。
 
-1. Authors
-2. 主な主張
-3. 新規性
-4. 位置付け
+### 分量と役割
 
-Authors 以外の書誌情報、すなわち INSPIRE key、DOI、journal、volume、pages、year、report number 等は本文カードに書かない。
-それらは `references.bib` と参考文献欄に集約する。
-
-### 分量
-
-- `主な主張`、`新規性`、`位置付け` はそれぞれ原則1文とする。
-- 必要な場合でも最大2文程度に抑える。
-- デフォルト状態では A4 1ページに3--5本程度の論文が収まる密度を目安とする。
+- 各本文項目は原則1文。必要な場合でも最大2文程度。A4 1ページに3--5本程度を目安とする。
 - 詳細な背景説明、手法の細部、式の解説を基本カードに持ち込まない。
-
-### 各項目の役割
-
-- `主な主張`: その論文が最終的に何を示したかを書く。
-- `新規性`: 既存研究に対して何が新しいかを書く。単なる作業内容の列挙にしない。
-- `位置付け`: その論文が分野の中でどの役割を持つかを書く。必要ならユーザーの研究との関係を短く含めてよい。
+- 主な主張: その論文が最終的に何を示したかを書く。
+- 新規性: 既存研究に対して何が新しいかを書く。単なる作業内容の列挙にしない。
+- 位置付け: 分野の中での役割を短く述べる。必要ならユーザーの研究との関係を短く含めてよい。
 
 ## 追加コメントは例外
 
-デフォルトでは Authors と上記3項目以外を追加しない。
-
-`コメント`、`補足`、`仮定`、`研究への関係`、`重要な式`、`注意点` などの追加項目は、**ユーザーがその論文について明示的に追加を指示した場合にのみ**作成してよい。
-
-過去の会話に詳しい議論が存在すること自体は、追加の理由にならない。
-ChatGPT / Codex が独自判断で第4の本文項目を増やしてはいけない。
-
-追加コメントを許可された場合は、3項目の後ろに追記する。
-既にユーザーの指示で追加されたコメントは、ユーザーの指示なしに削除・要約・拡張しない。
-
-PDFを生成する場合も同じルールを適用する。
+コメント、補足、仮定、研究への関係、重要な式、注意点などの追加項目は、**ユーザーがその論文について明示的に追加を指示した場合にのみ**作成してよい。
+過去の会話に詳しい議論が存在すること自体は追加の理由にならない。AIの独自判断で第4の本文項目を増やしてはいけない。
+追加コメントを許可された場合は3項目の後ろに追記する。
+既にユーザーの指示で追加されたコメントは、指示なしに削除・要約・拡張しない。
+PDF・HTMLも同じルールを適用する。
 
 ## 参考文献・citation
 
 - 各論文自身を本文中で `\cite{...}` する。
 - 関連先行研究に具体的に言及する場合も適切に `\cite{...}` を付ける。
-- 書誌情報は `references.bib` に集約する。
-- BibTeX は原則として INSPIRE が出力する形式をそのまま使用する。citation key も取得できる場合は `Abe:2026cmt` のような INSPIRE key を使用する。
-- INSPIRE の BibTeX を直接取得できない場合は、arXiv・出版社等で書誌情報を確認した上で、INSPIRE 出力に近い形式の `@article` entry を作成する。
-- INSPIRE key を確認できない場合は `Surname:YearKeyword` のような識別可能なローカル key を作ってよい。
-- 未出版論文では原則として `author`, `title`, `eprint`, `archivePrefix`, `primaryClass`, `reportNumber`（存在する場合）, `month`, `year` を保持する。
+- 書誌情報は原則 `references.bib` に集約する。分割されている場合は `main.tex` の `\bibliography{...}` に含める。
+- BibTeXは原則INSPIREの出力形式をそのまま使用し、取得できる場合は `Abe:2026cmt` のようなINSPIRE keyを使う。
+- INSPIREのBibTeXを直接取得できない場合は、arXiv・出版社等で書誌情報を確認してINSPIREに近い `@article` entryを作成する。
+- INSPIRE keyを確認できない場合は `Surname:YearKeyword` のような識別可能なローカルkeyでよい。
+- 未出版論文では原則 `author`, `title`, `eprint`, `archivePrefix`, `primaryClass`, `reportNumber`（存在する場合）, `month`, `year` を保持する。
 - 出版済み論文では上記に加えて `doi`, `journal`, `volume`, `number`（存在する場合）, `pages`, `year` を保持する。
-- 書誌情報を推測で埋めない。不明な field は省略する。
-- bibliography style は `yautphys.bst` を使用する。
+- 書誌情報を推測で埋めない。不明なfieldは省略する。
+- bibliography styleは `yautphys.bst` を使用する。
 
 ## PDF・レイアウト
 
-- 各論文タイトルである `\subsection` 見出しは `RuriIro` で表示し、論文同士の境界を視覚的に明確にする。
+- 論文タイトルである `\subsection` 見出しは `RuriIro` で表示する。
 - `section` 見出しは通常の黒色のままにする。
-- **各 section は必ず新しいページから開始する。** `main.tex` では、先頭 section を除き各 `\input{sections/...}` の直前に `\clearpage` を置く。
-- **参考文献は必ず新しいページから開始する。** `\bibliographystyle` / `\bibliography` の直前に `\clearpage` を置く。
-- 新しい section を `main.tex` に追加するときも、この改ページ規則を維持する。
-- レイアウト変更を行ったときは、論文タイトルの色、section ごとの改ページ、参考文献前の改ページが反映されていることを目視確認する。
+- **各sectionは必ず新しいページから開始する。** `main.tex`では先頭sectionを除き、各 `\input{sections/...}` の直前に `\clearpage` を置く。
+- **参考文献も必ず新しいページから開始する。** `\bibliographystyle` / `\bibliography` の直前に `\clearpage` を置く。
+- 新しいsectionを追加するときも改ページ規則を維持する。
+- レイアウトを変更したときは、タイトルの色、sectionごとの改ページ、参考文献前の改ページを目視確認する。
 
 ### PDF自動生成
 
-- GitHub 上の LaTeX / BibTeX ソースを正本とする。
-- `.github/workflows/build-pdf.yml` により、`main` ブランチの LaTeX / BibTeX / bibliography style / build 設定が更新されるたびに PDF を自動ビルドする。
-- ビルドは `.latexmkrc` を使い、pLaTeX + BibTeX + dvipdfmx の構成を維持する。
-- 自動生成された閲覧用 PDF はリポジトリ直下の `paper-reading-notes.pdf` とする。
-- `main.pdf` はローカル・CI の中間生成物として Git 管理しない。
-- 自動ビルドされた `paper-reading-notes.pdf` はソースではなく閲覧用スナップショットであり、PDF側を直接編集しない。
-- 通常の論文追加では毎回ローカルで全ページをレンダリング確認しない。レイアウト変更時、ビルド失敗時、またはユーザーが明示的に確認を求めた場合に限り目視確認する。
+- GitHub上のLaTeX / BibTeXを正本とする。
+- `.github/workflows/build-pdf.yml`で `main` のLaTeX / BibTeX / bibliography style / build設定変更時にPDFを自動ビルドする。
+- `.latexmkrc`を使いpLaTeX + BibTeX + dvipdfmxを維持する。
+- 自動生成された閲覧用PDFはリポジトリ直下の `paper-reading-notes.pdf` とする。
+- `main.pdf`はローカル・CIの中間生成物としてGit管理しない。
+- PDFは閲覧用スナップショットであり、PDF側を直接編集しない。
+- 通常の論文追加では毎回ローカルで全ページをレンダリング確認しない。レイアウト変更時、ビルド失敗時、ユーザーが明示的に確認を求めた場合に目視確認する。
+
+## HTML版
+
+- PagesトップはHTML版ノートとする。PDFへの自動転送に戻さない。上部にPDFを開くリンクを残す。
+- 正本は引き続きLaTeXとBibTeX。HTML用の本文を手編集・再要約して二重管理しない。
+- HTMLはPDFと同じ `main.tex` の読み込み順、同じ論文本文・既存コメントを使う。
+- 各カードと参考文献欄に「BibTeX をコピー」「Key」「\cite{…}」を配置する。
+- コピーするBibTeXは元entryを保持し、表示用Unicode化・数式変換をコピー文字列に適用しない。
+- `\bibliography{...}`の全ファイルを読む。`references-extra.bib`を取りこぼさない。
+- PDFとHTMLを同じBuild PDF runで生成し、Pagesはそのrunの `paper-reading-notes-site` artifactを配信する。別コミットの本文とPDFを混在させない。
+- 全 `.bib`、HTML生成器、テンプレート、CSS、JavaScriptの変更も自動ビルド対象とする。
+- 未接続論文、重複読み込み、未定義citation、対応BibTeX不明、未変換LaTeXを検査で検出する。黙って省略しない。
+- HTML生成器・外観・操作を変更したら、`tests/test_html.py` とブラウザ検査でコピー文字列・内部リンク・数式・スマホ幅を確認する。
+- 配信成功だけで「最新版」と断定しない。必要に応じて `build-info.json` の元コミット・収録論文・PDFハッシュを確認する。
+- 実装とローカル検査の詳細は `web/README.md` を参照する。
 
 ## テーマ分類
 
-各論文は適切な `sections/*.tex` から `\input{papers/<arXiv番号>}` してPDFに含める。
-既存テーマで自然に分類できない場合は `sections/uncategorized.tex` に入れ、新しいテーマが十分にまとまった段階で section を新設する。
-同じ論文を複数 section から `\input` して重複掲載しない。
-新しい section に最初の論文を追加したときは、その section が `main.tex` から読み込まれていることも確認する。
+各論文は適切な `sections/*.tex` から `\input{papers/<arXiv番号>}` する。
+既存テーマで自然に分類できない場合は `sections/uncategorized.tex` に入れ、新しいテーマがまとまった段階でsectionを新設する。
+同じ論文を複数sectionから読み込んで重複掲載しない。
+sectionに最初の論文を追加したときは、そのsectionが `main.tex` から読み込まれていることも確認する。
 
 ## 編集時の手順
 
-新しい論文を追加するときは必ず次を行う。
-
 1. この `AGENTS.md` と `papers/_template.tex` を確認する。
 2. `papers/<arXiv番号>.tex` を作成する。
-3. 適切な `sections/*.tex` に `\input{papers/<arXiv番号>}` を追加する。
-4. 論文自身と本文中で引用した先行研究の BibTeX を `references.bib` に追加する。
-5. Authors + 3項目だけになっていることを確認する。ユーザーの明示指示がない追加項目があれば削除する。
-6. 実際に保存した Authors + 3項目をチャットにも表示する。
-7. PDF は GitHub Actions に任せ、レイアウト変更がない限りローカルでの再生成・全ページ目視確認を省略する。
+3. 適切なsectionへ読み込みを追加し、`main.tex`から到達できることを確認する。
+4. 本人の論文と引用した先行研究のBibTeXを登録する。
+5. Authors + 3項目のみであることを確認する。新規追加項目に明示指示がないものは作らない。既存の許可済みコメントは維持する。
+6. 実際に保存したAuthors + 3項目（許可された追加内容も）をチャットに表示する。
+7. PDF・HTMLの生成はActionsに任せ、必要のないローカル再生成は省略する。
 
 既存論文を更新するときは、その論文に関係する部分だけを変更する。
 
-## 通常運用
+## 通常運用と文章
 
-- GitHub 上の LaTeX ソースを正本とする。
-- 論文の追加・修正時はソースをリポジトリへ反映する。PDFは GitHub Actions が自動更新する。
-- ユーザーが GitHub 上で素早く最新版を見たい場合は、リポジトリ直下の `paper-reading-notes.pdf` を開く。
-- ChatGPT 内でPDFそのものを求められた場合は、可能なら生成済みの最新版を再利用し、不必要な再コンパイルを避ける。
-
-## 文章
-
-- 研究ノートとして簡潔かつ具体的に書く。
-- 論文の主張と、解釈・推論を混同しない。
-- 新規性は既存研究との差が分かるように書く。
-- 位置付けでは分野の中での役割を短く述べる。
+- ソースの追加・修正をGitHubへ反映すると、PDF・HTMLはActionsが更新する。
+- 閲覧・引用の取得はPagesのHTML版を利用できる。PDF単体を求められた場合は可能なら生成済みの最新版を再利用する。
+- 研究ノートとして簡潔かつ具体的に書く。論文の主張と解釈・推論を混同しない。
+- 新規性は既存研究との差が分かるように、位置付けは分野での役割を短く書く。
 
 ## LaTeX
 
-- `main.tex` は `jsarticle` を使用し、pLaTeX + dvipdfmx でコンパイルする。
-- 共通 package・レイアウト・数式マクロは、ユーザー提供の `macro_jsarticle.tex` を `main.tex` から読み込む。
-- `macro.tex` は別用途マクロとして保持し、必要がない限り `main.tex` からは読み込まない。
-- 各 paper ファイル単体では document class や package を宣言しない。
-- `papers/*.tex` は `main.tex` から読み込まれる本文断片として書く。
+- `main.tex`は `jsarticle` を使用し、pLaTeX + dvipdfmxでコンパイルする。
+- 共通package・レイアウト・数式マクロは `macro_jsarticle.tex` を読み込む。
+- `macro.tex`は別用途として保持し、必要がない限り `main.tex` から読み込まない。
+- `papers/*.tex`は本文断片とし、document classやpackageを個別に宣言しない。

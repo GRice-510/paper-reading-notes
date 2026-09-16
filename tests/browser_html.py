@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Browser smoke tests. Clipboard reads exist only here, never in the website."""
 import argparse
+import hashlib
 import json
 import os
 import threading
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, expect
 
 ROOT = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser()
@@ -37,11 +38,15 @@ with sync_playwright() as p:
         page.wait_for_function("document.documentElement.dataset.mathReady === 'true'", timeout=90000)
         assert page.locator('mjx-container').count() > 0
         assert page.locator('mjx-merror, [data-mjx-error]').count() == 0, 'MathJax errors'
-    manifest = context.request.get(url.split('#')[0].split('?')[0] + 'build-info.json?check=1').json()
+    base = url.split('#')[0].split('?')[0]
+    manifest = context.request.get(base + 'build-info.json?check=1').json()
     assert page.locator('meta[name="source-revision"]').get_attribute('content') == manifest['source_revision']
+    pdf_response = context.request.get(base + manifest['pdf_file'])
+    assert pdf_response.status == 200
+    assert hashlib.sha256(pdf_response.body()).hexdigest() == manifest['pdf_sha256']
     data = page.locator('#bib-data').evaluate('(e) => JSON.parse(e.textContent)')
     n = page.locator('.paper').count()
-    assert n > 0
+    assert n == manifest['paper_count'] and n > 0
     for button in page.locator('[data-copy="bib"]').all():
         key = button.get_attribute('data-key')
         button.click()
@@ -73,12 +78,13 @@ with sync_playwright() as p:
     page.locator('#search').fill('zzzznonexistentzzzz')
     page.evaluate("location.hash = '#paper-2608.29746'")
     page.wait_for_timeout(100)
-    assert page.locator('[id="paper-2608.29746"]').is_visible()
+    expect(page.locator('[id="paper-2608.29746"]')).to_be_visible()
     page.screenshot(path=str(args.screenshots / 'icecube.png'))
-    page.evaluate("navigator.clipboard.writeText = () => Promise.reject(new DOMException('Denied', 'NotAllowedError'))")
+    # A block-bodied function avoids Playwright auto-invoking an assignment's returned function.
+    page.evaluate("() => { navigator.clipboard.writeText = () => Promise.reject(new DOMException('Denied', 'NotAllowedError')); }")
     paper = page.locator('[id="paper-2608.29746"]')
     paper.locator('[data-copy="bib"]').click()
-    assert page.locator('#copy-dialog').is_visible()
+    expect(page.locator('#copy-dialog')).to_be_visible()
     assert page.locator('#copy-text').input_value() == data[paper.get_attribute('data-key')]
     page.locator('#copy-dialog button').click()
     for width in [375, 390, 768]:
@@ -88,7 +94,7 @@ with sync_playwright() as p:
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), width
         page.screenshot(path=str(args.screenshots / f'mobile-{width}.png'))
     assert not errors, errors
-    (args.screenshots / 'report.json').write_text(json.dumps({'papers': n, 'references': len(data), 'bib_copy_checks': n + len(data), 'math_verified': args.require_math, 'url': url, 'javascript_errors': errors, 'source_revision': manifest['source_revision']}, indent=2))
+    (args.screenshots / 'report.json').write_text(json.dumps({'papers': n, 'references': len(data), 'bib_copy_checks': n + len(data), 'math_verified': args.require_math, 'pdf_sha256_verified': manifest['pdf_sha256'], 'url': url, 'javascript_errors': errors, 'source_revision': manifest['source_revision']}, indent=2))
     print('Browser checks passed:', n, 'cards and', len(data), 'references')
     browser.close()
 if server:
