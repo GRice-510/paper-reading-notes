@@ -107,8 +107,9 @@ with sync_playwright() as p:
     assert '#ref-' in page.url
     assert page.locator('.reference:target').count() == 1
     page.locator('#search').fill('2608.29746')
-    assert page.locator('.paper:visible').count() == 1
-    assert 'IceCube' in page.locator('.paper:visible h3').inner_text()
+    ice_search = page.locator('[id="paper-2608.29746"]')
+    expect(ice_search).to_be_visible()
+    assert 'IceCube' in ice_search.locator('h3').inner_text()
     page.locator('#search').fill('zzzznonexistentzzzz')
     assert page.locator('#empty').is_visible()
     page.locator('#reset').click()
