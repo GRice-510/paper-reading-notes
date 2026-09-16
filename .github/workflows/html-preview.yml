@@ -1,0 +1,21 @@
+name: HTML preview preparation
+on:
+  push:
+    branches: [feature/html-notes-20260916]
+    paths: [.github/workflows/html-preview.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Package sources for local HTML conversion tests
+        run: git archive --format=zip --output=/tmp/notes-source.zip HEAD
+      - uses: actions/upload-artifact@v6
+        with:
+          name: notes-source-snapshot
+          path: /tmp/notes-source.zip
+          retention-days: 1
