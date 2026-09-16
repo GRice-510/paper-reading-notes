@@ -11,3 +11,8 @@
 *.run.xml
 main.pdf
 .DS_Store
+
+_site/
+test-results/
+__pycache__/
+*.pyc

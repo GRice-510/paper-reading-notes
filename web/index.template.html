@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="論文読解ノート。テーマ別の概要、参考文献、BibTeXコピー。">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="source-revision" content="@@REVISION@@">
+  <title>Paper Reading Notes</title>
+  <link rel="stylesheet" href="@@CSS@@">
+  <script>
+    window.MathJax = {
+      tex: {inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']], processEscapes: true},
+      options: {skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']},
+      chtml: {scale: 1.0},
+      startup: {ready() {MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => {document.documentElement.dataset.mathReady = 'true'; document.dispatchEvent(new Event('notes-math-ready'));});}}
+    };
+  </script>
+  <script defer src="@@JS@@"></script>
+  <script id="mathjax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script>
+</head>
+<body>
+  <a class="skip" href="#notes">本文へスキップ</a>
+  <header class="site-header" id="top">
+    <div><p class="eyebrow">RESEARCH LIBRARY</p><h1>Paper Reading Notes</h1>
+    <p class="site-description">論文概要と参考文献 · その場でBibTeXをコピー</p></div>
+    <div class="header-links"><a class="pdf-link" href="@@PDF@@" target="_blank" rel="noopener">PDF版を開く ↗</a><a href="references.bib" download>全BibTeXを保存</a></div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" aria-label="目次">
+      <details class="toc" open><summary>CONTENTS <span>@@SECTION_COUNT@@ sections</span></summary>
+        <nav>@@NAV@@<a href="#references"><span>参考文献</span><span class="count">@@REFERENCE_COUNT@@</span></a></nav>
+      </details>
+      <div class="edition"><span>収録内容の更新</span><time datetime="@@SOURCE_DATE@@">@@SOURCE_DATE@@</time><span>版: <code>@@SHORT_REVISION@@</code></span><p>HTMLとPDFは同じソースから生成。</p></div>
+    </aside>
+    <main id="notes">
+      <div class="search-panel" role="search">
+        <label class="search-box"><span class="sr-only">論文と参考文献を検索</span><input id="search" type="search" placeholder="タイトル・著者・arXiv・本文を検索" autocomplete="off"></label>
+        <label><span class="sr-only">テーマで絞り込む</span><select id="topic"><option value="">すべてのテーマ</option>@@OPTIONS@@</select></label>
+        <button type="button" id="reset">解除</button>
+      </div>
+      <div class="result-line"><p id="result-count" role="status" aria-live="polite">@@PAPER_COUNT@@ 論文 / @@REFERENCE_COUNT@@ 参考文献</p><a href="#references">参考文献へ ↓</a></div>
+      <p class="hint">各カードの「BibTeX をコピー」で全文を取得できます。Key・<code>\cite{…}</code>も個別にコピーできます。</p>
+      <noscript><p class="notice">コピーと絞り込みにはJavaScriptが必要です。「BibTeXを表示」から選択・コピーすることもできます。</p></noscript>
+      <p id="math-warning" class="notice" hidden>数式表示を読み込めませんでした。本文・引用情報は利用できます。数式はPDF版でも確認できます。</p>
+      <p id="empty" class="notice" hidden>一致する論文・参考文献がありません。検索条件を変更してください。</p>
+      <div id="paper-list">@@CARDS@@</div>
+      <section id="references" class="references-section"><h2>参考文献 <span class="count">@@REFERENCE_COUNT@@</span></h2><p class="hint">本文の引用番号から移動できます。ここでも同じBibTeXをコピーできます。</p>@@REFERENCES@@</section>
+      <footer><a href="#top">ページ先頭へ ↑</a><span>Source: LaTeX + BibTeX</span></footer>
+    </main>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <dialog id="copy-dialog" aria-labelledby="copy-title"><h2 id="copy-title">コピーする引用情報</h2><p>ブラウザが自動コピーを許可しませんでした。選択済みのテキストをコピーしてください。</p><textarea id="copy-text" readonly aria-label="コピー対象の引用情報" spellcheck="false"></textarea><form method="dialog"><button>閉じる</button></form></dialog>
+  <script id="bib-data" type="application/json">@@DATA@@</script>
+</body>
+</html>

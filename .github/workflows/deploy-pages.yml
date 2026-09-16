@@ -1,15 +1,20 @@
-name: Deploy PDF to Pages
+name: Deploy Notes to Pages
 
 on:
   workflow_run:
-    workflows:
-      - "Build PDF"
-    types:
-      - completed
+    workflows: ["Build PDF"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: "Successful Build PDF run containing paper-reading-notes-site"
+        required: true
+        type: string
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
@@ -19,56 +24,56 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ !github.event.repository.private && (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success') }}
+    if: ${{ !github.event.repository.private && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository)) }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
     steps:
-      - name: Check out latest main
+      - name: Check out main for freshness check
         uses: actions/checkout@v6
         with:
           ref: main
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Prepare site
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download the exact site built with the PDF
+        uses: actions/download-artifact@v8
+        with:
+          name: paper-reading-notes-site
+          path: _site
+          run-id: ${{ github.event.workflow_run.id || inputs.build_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check source version and PDF integrity
+        id: freshness
         shell: bash
         run: |
-          mkdir -p _site
-          PAGE_VERSION="$(git rev-parse --short=12 HEAD)"
-          VERSIONED_PDF="paper-reading-notes-${PAGE_VERSION}.pdf"
-
-          # Keep the stable URL for bookmarks, but redirect the Pages root to a
-          # versioned filename so browser/PDF-viewer caches cannot show an old PDF.
-          cp paper-reading-notes.pdf _site/paper-reading-notes.pdf
-          cp paper-reading-notes.pdf "_site/${VERSIONED_PDF}"
-
-          cat > _site/index.html <<EOF
-          <!doctype html>
-          <html lang="ja">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width,initial-scale=1">
-            <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
-            <meta http-equiv="pragma" content="no-cache">
-            <meta http-equiv="expires" content="0">
-            <meta http-equiv="refresh" content="0; url=${VERSIONED_PDF}">
-            <title>Paper Reading Notes</title>
-          </head>
-          <body>
-            <p><a href="${VERSIONED_PDF}">最新版PDFを開く</a></p>
-          </body>
-          </html>
-          EOF
-
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root = Path('_site')
+          m = json.loads((root / 'build-info.json').read_text())
+          for name in ['paper-reading-notes.pdf', m['pdf_file']]:
+              assert hashlib.sha256((root / name).read_bytes()).hexdigest() == m['pdf_sha256']
+          assert m['source_revision'] in (root / 'index.html').read_text()
+          assert m['paper_count'] == len(m['papers'])
+          PY
+          SOURCE_SHA="$(python3 -c 'import json; print(json.load(open("_site/build-info.json"))["source_revision"])')"
+          if git diff --quiet "$SOURCE_SHA" HEAD -- '*.tex' '*.bib' '*.bst' .latexmkrc scripts web tests .github/workflows/build-pdf.yml .github/workflows/deploy-pages.yml; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Newer source files are present. Do not deploy this outdated snapshot."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Configure GitHub Pages
+        if: steps.freshness.outputs.publish == 'true'
+        uses: actions/configure-pages@v5
       - name: Upload Pages artifact
+        if: steps.freshness.outputs.publish == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
-
       - name: Deploy to GitHub Pages
+        if: steps.freshness.outputs.publish == 'true'
         id: deployment
         uses: actions/deploy-pages@v4

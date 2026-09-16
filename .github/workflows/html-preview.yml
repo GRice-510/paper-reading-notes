@@ -1,21 +1,53 @@
-name: HTML preview preparation
+name: Check HTML notes
 on:
   push:
-    branches: [feature/html-notes-20260916]
-    paths: [.github/workflows/html-preview.yml]
+    branches: [main, feature/html-notes-20260916]
+    paths:
+      - scripts/**
+      - web/**
+      - tests/**
+      - .github/workflows/html-preview.yml
+  workflow_run:
+    workflows: ["Deploy Notes to Pages"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: html-check-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  snapshot:
+  test:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - name: Package sources for local HTML conversion tests
-        run: git archive --format=zip --output=/tmp/notes-source.zip HEAD
-      - uses: actions/upload-artifact@v6
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends pandoc fonts-noto-cjk
+          python3 -m pip install playwright==1.57.0
+          python3 -m playwright install --with-deps chromium
+      - name: Check conversion and render preview
+        run: |
+          python3 -m unittest discover -s tests -p test_html.py -v
+          python3 scripts/build_html.py --output _site --revision "$GITHUB_SHA" --source-date "$(git log -1 --format=%cI)"
+      - name: Test clipboard, navigation, math and responsive layouts
+        if: github.event_name != 'workflow_run'
+        run: python3 tests/browser_html.py --require-math
+      - name: Test the deployed HTTPS website
+        if: github.event_name == 'workflow_run'
+        run: python3 tests/browser_html.py --require-math --url "https://grice-510.github.io/paper-reading-notes/?check=$GITHUB_RUN_ID"
+      - name: Save browser verification results
+        if: always()
+        uses: actions/upload-artifact@v6
         with:
-          name: notes-source-snapshot
-          path: /tmp/notes-source.zip
-          retention-days: 1
+          name: html-browser-check
+          path: |
+            test-results
+            _site/build-info.json
+          retention-days: 7
