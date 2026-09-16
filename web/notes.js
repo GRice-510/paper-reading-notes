@@ -261,3 +261,105 @@
   filter();
   if (location.hash) setTimeout(revealHash, 0);
 })();
+
+// Desktop contents sidebar resizing. Width is stored only in this browser.
+(() => {
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+  const root = document.documentElement;
+  const storageKey = 'paper-notes-sidebar-width';
+  const desktop = window.matchMedia('(min-width: 761px)');
+  const minWidth = 180;
+  const defaultWidth = () => window.innerWidth <= 1020 ? 205 : 245;
+  const maxWidth = () => Math.max(minWidth, Math.min(440, window.innerWidth * 0.42));
+  const clamp = value => Math.min(maxWidth(), Math.max(minWidth, value));
+
+  const resizer = document.createElement('div');
+  resizer.id = 'sidebar-resizer';
+  resizer.className = 'sidebar-resizer';
+  resizer.setAttribute('role', 'separator');
+  resizer.setAttribute('aria-orientation', 'vertical');
+  resizer.setAttribute('aria-label', '目次の幅を変更');
+  resizer.setAttribute('tabindex', '0');
+  resizer.title = 'ドラッグで目次幅を変更。ダブルクリックまたはHomeキーで初期幅に戻します。';
+  sidebar.insertAdjacentElement('afterend', resizer);
+
+  let remembered = null;
+  try {
+    const stored = Number(localStorage.getItem(storageKey));
+    if (Number.isFinite(stored) && stored > 0) remembered = stored;
+  } catch (_) {}
+
+  function writeStored(value) {
+    try { localStorage.setItem(storageKey, String(Math.round(value))); } catch (_) {}
+  }
+  function applyWidth(value, persist = false) {
+    if (!desktop.matches) return;
+    const width = clamp(value);
+    root.style.setProperty('--sidebar-width', `${Math.round(width)}px`);
+    resizer.setAttribute('aria-valuemin', String(minWidth));
+    resizer.setAttribute('aria-valuemax', String(Math.round(maxWidth())));
+    resizer.setAttribute('aria-valuenow', String(Math.round(width)));
+    resizer.setAttribute('aria-valuetext', `${Math.round(width)}ピクセル`);
+    if (persist) {
+      remembered = width;
+      writeStored(width);
+    }
+  }
+  function restoreWidth() {
+    if (!desktop.matches) {
+      root.style.removeProperty('--sidebar-width');
+      return;
+    }
+    applyWidth(remembered ?? defaultWidth());
+  }
+
+  let dragging = false;
+  let startX = 0;
+  let startWidth = 0;
+  resizer.addEventListener('pointerdown', event => {
+    if (!desktop.matches || event.button !== 0) return;
+    dragging = true;
+    startX = event.clientX;
+    startWidth = sidebar.getBoundingClientRect().width;
+    resizer.setPointerCapture(event.pointerId);
+    document.body.classList.add('sidebar-resizing');
+    event.preventDefault();
+  });
+  resizer.addEventListener('pointermove', event => {
+    if (dragging) applyWidth(startWidth + event.clientX - startX);
+  });
+  function finishDrag(event) {
+    if (!dragging) return;
+    dragging = false;
+    document.body.classList.remove('sidebar-resizing');
+    if (event?.pointerId != null && resizer.hasPointerCapture(event.pointerId)) resizer.releasePointerCapture(event.pointerId);
+    applyWidth(sidebar.getBoundingClientRect().width, true);
+  }
+  resizer.addEventListener('pointerup', finishDrag);
+  resizer.addEventListener('pointercancel', finishDrag);
+
+  resizer.addEventListener('keydown', event => {
+    if (!desktop.matches) return;
+    const current = sidebar.getBoundingClientRect().width;
+    const step = event.shiftKey ? 32 : 12;
+    if (event.key === 'ArrowLeft') {
+      applyWidth(current - step, true);
+      event.preventDefault();
+    } else if (event.key === 'ArrowRight') {
+      applyWidth(current + step, true);
+      event.preventDefault();
+    } else if (event.key === 'Home') {
+      remembered = defaultWidth();
+      applyWidth(remembered, true);
+      event.preventDefault();
+    }
+  });
+  resizer.addEventListener('dblclick', () => {
+    remembered = defaultWidth();
+    applyWidth(remembered, true);
+  });
+  desktop.addEventListener?.('change', restoreWidth);
+  window.addEventListener('resize', restoreWidth, {passive: true});
+  restoreWidth();
+})();
