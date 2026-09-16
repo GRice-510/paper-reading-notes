@@ -38,10 +38,15 @@ jobs:
           python3 scripts/build_html.py --output _site --revision "$GITHUB_SHA" --source-date "$(git log -1 --format=%cI)"
       - name: Test clipboard, navigation, math and responsive layouts
         if: github.event_name != 'workflow_run'
-        run: python3 tests/browser_html.py --require-math
+        run: |
+          python3 tests/browser_html.py --require-math
+          python3 tests/browser_sidebar.py
       - name: Test the deployed HTTPS website
         if: github.event_name == 'workflow_run'
-        run: python3 tests/browser_html.py --require-math --url "https://grice-510.github.io/paper-reading-notes/?check=$GITHUB_RUN_ID"
+        run: |
+          URL="https://grice-510.github.io/paper-reading-notes/?check=$GITHUB_RUN_ID"
+          python3 tests/browser_html.py --require-math --url "$URL"
+          python3 tests/browser_sidebar.py --url "$URL"
       - name: Save browser verification results
         if: always()
         uses: actions/upload-artifact@v6
