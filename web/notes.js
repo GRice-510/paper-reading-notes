@@ -29,7 +29,7 @@
     const nav = document.querySelector('.toc nav');
     if (!nav) return;
     const style = document.createElement('style');
-    style.id = 'detailed-toc-style';
+    style.id = 'interactive-notes-style';
     style.textContent = `
       .toc nav{display:block}
       .toc-section{border-bottom:1px solid var(--border);padding:2px 0}
@@ -41,11 +41,24 @@
       .toc-paper-number{color:var(--blue);font-variant-numeric:tabular-nums;white-space:nowrap}
       .toc-paper-title{min-width:0;overflow-wrap:anywhere}
       .toc nav a.toc-reference-link{margin-top:10px;border-top:1px solid var(--border);border-radius:0;padding-top:12px}
+      .topic>h2{display:flex;align-items:baseline;gap:7px}
+      .collapse-toggle{margin-left:auto;flex:0 0 auto;width:32px;height:32px;padding:0;border:1px solid var(--border);border-radius:6px;background:white;color:#52627a;font-size:1rem;line-height:1;display:inline-grid;place-items:center}
+      .collapse-toggle:hover{background:var(--soft);border-color:#a9bfdc;color:var(--blue)}
+      .paper-heading>.collapse-toggle{align-self:flex-start;margin-top:1px}
+      .topic[data-collapsed="true"]>:not(h2){display:none!important}
+      .paper[data-collapsed="true"]>:not(.paper-heading){display:none!important}
+      .paper[data-collapsed="true"]{padding-top:18px;padding-bottom:18px}
+      .paper[data-collapsed="true"] .paper-heading{align-items:center}
       @media(max-width:760px){
         .toc nav{display:block}
         .toc-section>summary{padding:10px 5px;font-size:.8rem}
         .toc-section>summary .toc-section-title{font-size:.8rem}
         .toc nav a.toc-paper-link{grid-template-columns:2.65rem minmax(0,1fr);font-size:.77rem;padding:7px 5px}
+        .collapse-toggle{width:34px;height:34px}
+      }
+      @media print{
+        .collapse-toggle{display:none!important}
+        .topic[data-collapsed="true"]>:not(h2),.paper[data-collapsed="true"]>:not(.paper-heading){display:revert!important}
       }
     `;
     document.head.append(style);
@@ -104,6 +117,61 @@
   }
   installDetailedToc();
 
+  function targetLabel(target) {
+    if (target.classList.contains('paper')) {
+      return target.querySelector('h3')?.textContent.trim() || 'この論文';
+    }
+    const heading = target.querySelector(':scope > h2')?.cloneNode(true);
+    heading?.querySelector('.section-number')?.remove();
+    heading?.querySelector('.collapse-toggle')?.remove();
+    return heading?.textContent.trim() || 'このセクション';
+  }
+  function collapseButton(target, kind) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `collapse-toggle ${kind}-toggle`;
+    button.dataset.collapseTarget = target.id;
+    button.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      setCollapsed(target, target.dataset.collapsed !== 'true');
+    });
+    return button;
+  }
+  function setCollapsed(target, collapsed) {
+    target.dataset.collapsed = collapsed ? 'true' : 'false';
+    const button = target.classList.contains('paper')
+      ? target.querySelector(':scope > .paper-heading > .paper-toggle')
+      : target.querySelector(':scope > h2 > .section-toggle');
+    if (!button) return;
+    const label = targetLabel(target);
+    button.textContent = collapsed ? '▸' : '▾';
+    button.setAttribute('aria-expanded', String(!collapsed));
+    button.setAttribute('aria-label', `${label}を${collapsed ? '展開' : '閉じる'}`);
+    button.title = collapsed ? '展開する' : '閉じる';
+  }
+  function installCollapsibles() {
+    sections.forEach(section => {
+      const heading = section.querySelector(':scope > h2');
+      if (!heading || heading.querySelector('.section-toggle')) return;
+      heading.append(collapseButton(section, 'section'));
+      setCollapsed(section, false);
+    });
+    papers.forEach(paper => {
+      const heading = paper.querySelector(':scope > .paper-heading');
+      if (!heading || heading.querySelector('.paper-toggle')) return;
+      heading.append(collapseButton(paper, 'paper'));
+      setCollapsed(paper, false);
+    });
+  }
+  installCollapsibles();
+
+  function expandTarget(target) {
+    const parentTopic = target.classList.contains('topic') ? target : target.closest('.topic');
+    if (parentTopic) setCollapsed(parentTopic, false);
+    if (target.classList.contains('paper')) setCollapsed(target, false);
+  }
+
   const normalize = s => s.normalize('NFKC').toLocaleLowerCase();
   const index = new Map([...papers, ...references].map(el => [el, normalize(el.textContent + ' ' + el.dataset.key)]));
   let toastTimer;
@@ -127,7 +195,6 @@
       const mode = button.dataset.copy;
       const text = mode === 'bib' ? data[key] : mode === 'cite' ? `\\cite{${key}}` : key;
       try {
-        // Only write on a user click. Never read or request access to clipboard contents.
         if (!navigator.clipboard || !window.isSecureContext) throw new Error('Clipboard API unavailable');
         await navigator.clipboard.writeText(text);
         announce(mode === 'bib' ? 'BibTeXをコピーしました' : mode === 'cite' ? '\\cite{…}をコピーしました' : 'Citation keyをコピーしました');
@@ -138,10 +205,19 @@
     const terms = normalize(search.value.trim()).split(/\s+/).filter(Boolean);
     const match = el => terms.every(term => index.get(el).includes(term));
     const visibleRefs = new Set();
+    const filtering = terms.length > 0 || Boolean(topic.value);
     let count = 0;
     papers.forEach(el => {
       el.hidden = (topic.value && topic.value !== el.dataset.section) || !match(el);
-      if (!el.hidden) {count++; JSON.parse(el.dataset.refs).forEach(key => visibleRefs.add(key));}
+      if (!el.hidden) {
+        count++;
+        JSON.parse(el.dataset.refs).forEach(key => visibleRefs.add(key));
+        if (filtering) {
+          setCollapsed(el, false);
+          const parent = el.closest('.topic');
+          if (parent) setCollapsed(parent, false);
+        }
+      }
     });
     sections.forEach(el => {el.hidden = ![...el.querySelectorAll('.paper')].some(p => !p.hidden);});
     let refCount = 0;
@@ -163,6 +239,7 @@
     const el = document.getElementById(id) || document.getElementById('paper-' + id);
     if (!el) return;
     if (el.hidden || el.closest('[hidden]')) {search.value = ''; topic.value = ''; filter();}
+    expandTarget(el);
     const parentTopic = el.classList.contains('topic') ? el : el.closest('.topic');
     if (parentTopic && tocGroups.has(parentTopic.id)) tocGroups.get(parentTopic.id).open = true;
     requestAnimationFrame(() => el.scrollIntoView({block: 'start', behavior: 'instant'}));
