@@ -68,6 +68,28 @@ with sync_playwright() as p:
     first_toc_group.locator('summary').click()
     assert first_toc_group.evaluate('(e) => e.open') == before
 
+    # Body sections and individual paper cards are independently collapsible.
+    first_section = page.locator('.topic').first
+    first_paper = first_section.locator('.paper').first
+    section_toggle = first_section.locator(':scope > h2 > .section-toggle')
+    paper_toggle = first_paper.locator(':scope > .paper-heading > .paper-toggle')
+    assert section_toggle.count() == 1 and paper_toggle.count() == 1
+    assert section_toggle.get_attribute('aria-expanded') == 'true'
+    assert paper_toggle.get_attribute('aria-expanded') == 'true'
+    paper_toggle.click()
+    assert first_paper.get_attribute('data-collapsed') == 'true'
+    expect(first_paper.locator('.authors')).to_be_hidden()
+    assert first_section.get_attribute('data-collapsed') == 'false'
+    paper_toggle.click()
+    assert first_paper.get_attribute('data-collapsed') == 'false'
+    expect(first_paper.locator('.authors')).to_be_visible()
+    section_toggle.click()
+    assert first_section.get_attribute('data-collapsed') == 'true'
+    expect(first_paper).to_be_hidden()
+    section_toggle.click()
+    assert first_section.get_attribute('data-collapsed') == 'false'
+    expect(first_paper).to_be_visible()
+
     for button in page.locator('[data-copy="bib"]').all():
         key = button.get_attribute('data-key')
         button.click()
@@ -96,12 +118,26 @@ with sync_playwright() as p:
     page.locator('#reset').click()
     page.evaluate("history.replaceState(null, '', location.pathname); window.scrollTo(0, 0)")
     page.screenshot(path=str(args.screenshots / 'desktop.png'))
+
+    # Direct links reopen a collapsed paper and its collapsed parent section.
+    ice = page.locator('[id="paper-2608.29746"]')
+    ice_section_id = ice.evaluate("e => e.closest('.topic').id")
+    ice_section = page.locator(f'#{ice_section_id}')
+    if ice.get_attribute('data-collapsed') != 'true':
+        ice.locator(':scope > .paper-heading > .paper-toggle').click()
+    if ice_section.get_attribute('data-collapsed') != 'true':
+        ice_section.locator(':scope > h2 > .section-toggle').click()
+    assert ice.get_attribute('data-collapsed') == 'true'
+    assert ice_section.get_attribute('data-collapsed') == 'true'
     page.locator('#search').fill('zzzznonexistentzzzz')
     page.evaluate("location.hash = '#paper-2608.29746'")
     page.wait_for_timeout(100)
-    expect(page.locator('[id="paper-2608.29746"]')).to_be_visible()
+    expect(ice).to_be_visible()
+    assert ice.get_attribute('data-collapsed') == 'false'
+    assert ice_section.get_attribute('data-collapsed') == 'false'
     assert page.locator('.toc-section[data-section="section-extra-dimensional-neutrinos"]').evaluate('(e) => e.open')
     page.screenshot(path=str(args.screenshots / 'icecube.png'))
+
     # A block-bodied function avoids Playwright auto-invoking an assignment's returned function.
     page.evaluate("() => { navigator.clipboard.writeText = () => Promise.reject(new DOMException('Denied', 'NotAllowedError')); }")
     paper = page.locator('[id="paper-2608.29746"]')
