@@ -47,6 +47,27 @@ with sync_playwright() as p:
     data = page.locator('#bib-data').evaluate('(e) => JSON.parse(e.textContent)')
     n = page.locator('.paper').count()
     assert n == manifest['paper_count'] and n > 0
+
+    # PDF-like detailed table of contents: section -> numbered paper title / arXiv.
+    assert page.locator('.toc-section').count() == manifest['section_count']
+    assert page.locator('.toc-paper-link').count() == manifest['paper_count']
+    for paper in page.locator('.paper').all():
+        pid = paper.get_attribute('id')
+        toc_link = page.locator(f'.toc-paper-link[href="#{pid}"]')
+        assert toc_link.count() == 1, pid
+        arxiv_link = paper.locator('.actions a[href*="arxiv.org/abs/"]')
+        if arxiv_link.count():
+            eprint = arxiv_link.first.get_attribute('href').split('/abs/', 1)[1]
+            assert eprint.lower() in toc_link.inner_text().lower(), (pid, eprint)
+    ice_toc = page.locator('.toc-paper-link', has_text='2608.29746')
+    assert ice_toc.count() == 1 and 'IceCube' in ice_toc.inner_text()
+    first_toc_group = page.locator('.toc-section').first
+    before = first_toc_group.evaluate('(e) => e.open')
+    first_toc_group.locator('summary').click()
+    assert first_toc_group.evaluate('(e) => e.open') != before
+    first_toc_group.locator('summary').click()
+    assert first_toc_group.evaluate('(e) => e.open') == before
+
     for button in page.locator('[data-copy="bib"]').all():
         key = button.get_attribute('data-key')
         button.click()
@@ -79,6 +100,7 @@ with sync_playwright() as p:
     page.evaluate("location.hash = '#paper-2608.29746'")
     page.wait_for_timeout(100)
     expect(page.locator('[id="paper-2608.29746"]')).to_be_visible()
+    assert page.locator('.toc-section[data-section="section-extra-dimensional-neutrinos"]').evaluate('(e) => e.open')
     page.screenshot(path=str(args.screenshots / 'icecube.png'))
     # A block-bodied function avoids Playwright auto-invoking an assignment's returned function.
     page.evaluate("() => { navigator.clipboard.writeText = () => Promise.reject(new DOMException('Denied', 'NotAllowedError')); }")
