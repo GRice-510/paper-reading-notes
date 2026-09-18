@@ -2,7 +2,7 @@ name: Build PDF
 
 on:
   push:
-    branches: [main]
+    branches: [main, test/hierarchy-build-20260918]
     paths:
       - "**/*.tex"
       - "**/*.bib"
