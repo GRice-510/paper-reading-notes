@@ -47,10 +47,18 @@
 papers/2307.13230.tex
 ```
 
+ノートの階層は必ず次の3段階とする。
+
+```text
+section       = 大テーマ
+subsection    = 小テーマ
+subsubsection = 論文
+```
+
 各論文のデフォルト形式は必ず次の形とする。
 
 ```latex
-\subsection{Paper Title --- arXiv:XXXX.XXXXX}
+\subsubsection{Paper Title --- arXiv:XXXX.XXXXX}
 
 \textbf{Authors:} Author A, Author B, Author C
 
@@ -63,6 +71,10 @@ papers/2307.13230.tex
 \paragraph{位置付け}
 ...
 ```
+
+既存の旧形式paperファイルには `\subsection{...}` が残っていてよい。
+sectionファイルから `\paperinput{papers/<id>}` で読み込むと、PDFでは論文見出しを `\subsubsection` として扱う。
+**新規paperファイルは必ず `\subsubsection` を使う。**
 
 ## 本文カードの固定フォーマット
 
@@ -85,6 +97,33 @@ Authors以外の書誌情報（INSPIRE key、DOI、journal、volume、pages、ye
 既にユーザーの指示で追加されたコメントは、指示なしに削除・要約・拡張しない。
 PDF・HTMLも同じルールを適用する。
 
+## 論文の分類と掲載順
+
+- 論文はまず内容に応じて適切な `section`（大テーマ）へ分類する。
+- section内では、内容上意味のある `subsection`（小テーマ）へまとめる。
+- 小テーマを無理に細分化しない。まとまりが一つしかない場合は、そのsection全体を自然に表す小テーマを一つ置いてよい。
+- 各小テーマ内では、原則として**最初に世に出た古い論文から新しい論文へ**並べる。
+- 通常のarXiv論文では、arXivの**初回投稿年月**を基準にする。同じ年月なら受付番号を昇順にする。
+- 旧形式arXiv（例 `hep-ph/9811448`）も投稿年月として解釈する。
+- 後年にarXivへ再掲された古典論文は、arXiv登録年ではなく**元の初出年**を使う。
+- arXiv以前の論文は、元の出版日またはプレプリント日を使う。
+- journal掲載年より、原則として研究コミュニティへ最初に公開された時点を優先する。
+- section自体の順番は年代順ではなく、ノート全体の概念的な流れを優先する。
+- 同じ論文を複数section / subsectionから重複掲載しない。
+
+sectionファイルは原則として次の形にする。
+
+```latex
+\section{Broad Topic}
+
+\subsection{Subtopic A}
+\paperinput{papers/old-paper}
+\paperinput{papers/new-paper}
+
+\subsection{Subtopic B}
+\paperinput{papers/another-paper}
+```
+
 ## 参考文献・citation
 
 - 各論文自身を本文中で `\cite{...}` する。
@@ -100,12 +139,13 @@ PDF・HTMLも同じルールを適用する。
 
 ## PDF・レイアウト
 
-- 論文タイトルである `\subsection` 見出しは `RuriIro` で表示する。
-- `section` 見出しは通常の黒色のままにする。
+- `section` は大テーマで、通常の黒色見出しとする。
+- `subsection` は小テーマで、黒色の見出しとする。
+- `subsubsection` は論文タイトルで、`RuriIro` で表示する。
 - **各sectionは必ず新しいページから開始する。** `main.tex`では先頭sectionを除き、各 `\input{sections/...}` の直前に `\clearpage` を置く。
 - **参考文献も必ず新しいページから開始する。** `\bibliographystyle` / `\bibliography` の直前に `\clearpage` を置く。
 - 新しいsectionを追加するときも改ページ規則を維持する。
-- レイアウトを変更したときは、タイトルの色、sectionごとの改ページ、参考文献前の改ページを目視確認する。
+- レイアウトを変更したときは、section / subsection / paper title の階層、論文タイトルの色、sectionごとの改ページ、参考文献前の改ページを目視確認する。
 
 ### PDF自動生成
 
@@ -121,33 +161,30 @@ PDF・HTMLも同じルールを適用する。
 
 - PagesトップはHTML版ノートとする。PDFへの自動転送に戻さない。上部にPDFを開くリンクを残す。
 - 正本は引き続きLaTeXとBibTeX。HTML用の本文を手編集・再要約して二重管理しない。
-- HTMLはPDFと同じ `main.tex` の読み込み順、同じ論文本文・既存コメントを使う。
+- HTMLはPDFと同じ `main.tex` の読み込み順、同じ **section → subsection → paper** の階層、同じ論文本文・既存コメントを使う。
+- HTMLの左目次も **大テーマ → 小テーマ → 論文** の3段階で表示する。
+- 大テーマ、小テーマ、論文カードはそれぞれ折りたたみ可能にする。
 - 各カードと参考文献欄に「BibTeX をコピー」「Key」「\cite{…}」を配置する。
 - コピーするBibTeXは元entryを保持し、表示用Unicode化・数式変換をコピー文字列に適用しない。
 - `\bibliography{...}`の全ファイルを読む。`references-extra.bib`を取りこぼさない。
 - PDFとHTMLを同じBuild PDF runで生成し、Pagesはそのrunの `paper-reading-notes-site` artifactを配信する。別コミットの本文とPDFを混在させない。
 - 全 `.bib`、HTML生成器、テンプレート、CSS、JavaScriptの変更も自動ビルド対象とする。
 - 未接続論文、重複読み込み、未定義citation、対応BibTeX不明、未変換LaTeXを検査で検出する。黙って省略しない。
-- HTML生成器・外観・操作を変更したら、`tests/test_html.py` とブラウザ検査でコピー文字列・内部リンク・数式・スマホ幅を確認する。
+- HTML生成器・外観・操作を変更したら、`tests/test_html.py` とブラウザ検査で階層・コピー文字列・内部リンク・数式・スマホ幅を確認する。
 - 配信成功だけで「最新版」と断定しない。必要に応じて `build-info.json` の元コミット・収録論文・PDFハッシュを確認する。
 - 実装とローカル検査の詳細は `web/README.md` を参照する。
-
-## テーマ分類
-
-各論文は適切な `sections/*.tex` から `\input{papers/<arXiv番号>}` する。
-既存テーマで自然に分類できない場合は `sections/uncategorized.tex` に入れ、新しいテーマがまとまった段階でsectionを新設する。
-同じ論文を複数sectionから読み込んで重複掲載しない。
-sectionに最初の論文を追加したときは、そのsectionが `main.tex` から読み込まれていることも確認する。
 
 ## 編集時の手順
 
 1. この `AGENTS.md` と `papers/_template.tex` を確認する。
-2. `papers/<arXiv番号>.tex` を作成する。
-3. 適切なsectionへ読み込みを追加し、`main.tex`から到達できることを確認する。
-4. 本人の論文と引用した先行研究のBibTeXを登録する。
-5. Authors + 3項目のみであることを確認する。新規追加項目に明示指示がないものは作らない。既存の許可済みコメントは維持する。
-6. 実際に保存したAuthors + 3項目（許可された追加内容も）をチャットに表示する。
-7. PDF・HTMLの生成はActionsに任せ、必要のないローカル再生成は省略する。
+2. `papers/<arXiv番号>.tex` を `\subsubsection` 形式で作成する。
+3. 適切なsection / subsectionへ `\paperinput{papers/<arXiv番号>}` を追加する。
+4. そのsectionが `main.tex` から到達できることを確認する。
+5. 各小テーマ内で初出順になっていることを確認する。
+6. 本人の論文と引用した先行研究のBibTeXを登録する。
+7. Authors + 3項目のみであることを確認する。新規追加項目に明示指示がないものは作らない。既存の許可済みコメントは維持する。
+8. 実際に保存したAuthors + 3項目（許可された追加内容も）をチャットに表示する。
+9. PDF・HTMLの生成はActionsに任せ、必要のないローカル再生成は省略する。
 
 既存論文を更新するときは、その論文に関係する部分だけを変更する。
 
@@ -162,5 +199,6 @@ sectionに最初の論文を追加したときは、そのsectionが `main.tex` 
 
 - `main.tex`は `jsarticle` を使用し、pLaTeX + dvipdfmxでコンパイルする。
 - 共通package・レイアウト・数式マクロは `macro_jsarticle.tex` を読み込む。
+- section / subsection / paper heading の階層設定と `\paperinput` は `paper_hierarchy.tex` に集約する。
 - `macro.tex`は別用途として保持し、必要がない限り `main.tex` から読み込まない。
 - `papers/*.tex`は本文断片とし、document classやpackageを個別に宣言しない。

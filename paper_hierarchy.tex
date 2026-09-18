@@ -1,0 +1,26 @@
+% Paper Reading Notes: three-level hierarchy
+% section = broad topic, subsection = subtopic, subsubsection = paper.
+
+\makeatletter
+% Subtopic headings: black, visually between section and paper.
+\renewcommand{\subsection}{\@startsection{subsection}{2}{\z@}%
+  {\Cvs \@plus.5\Cdp \@minus.2\Cdp}%
+  {.45\Cvs \@plus.25\Cdp}%
+  {\normalfont\large\headfont}}
+
+% Paper titles: RuriIro and one level below the subtopic.
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{\z@}%
+  {.75\Cvs \@plus.4\Cdp \@minus.2\Cdp}%
+  {.3\Cvs \@plus.2\Cdp}%
+  {\normalfont\normalsize\headfont\color{RuriIro}}}
+\makeatother
+
+% Legacy paper files used \subsection for the paper title.
+% \paperinput locally maps that legacy command to \subsubsection.
+% New paper files already use \subsubsection and are unaffected.
+\newcommand{\paperinput}[1]{%
+  \begingroup
+    \let\subsection\subsubsection
+    \input{#1}%
+  \endgroup
+}

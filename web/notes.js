@@ -6,28 +6,46 @@
   const papers = [...document.querySelectorAll('.paper')];
   const references = [...document.querySelectorAll('.reference')];
   const sections = [...document.querySelectorAll('.topic')];
+  const subtopics = [...document.querySelectorAll('.subtopic')];
   const narrow = window.matchMedia('(max-width: 760px)');
   if (narrow.matches) document.querySelector('.toc').open = false;
 
   const tocGroups = new Map();
+
   function arxivFor(paper) {
     const link = paper.querySelector('.actions a[href*="arxiv.org/abs/"]');
     if (!link) return '';
     try {
       return decodeURIComponent(new URL(link.href).pathname.split('/abs/')[1] || '');
-    } catch (_) { return ''; }
+    } catch (_) {
+      return '';
+    }
   }
+
+  function paperTitleNode(paper) {
+    return paper.querySelector('.paper-heading h4');
+  }
+
   function paperTocTitle(paper) {
-    let title = paper.querySelector('h3')?.textContent.trim() || paper.id.replace(/^paper-/, '');
+    let title = paperTitleNode(paper)?.textContent.trim() || paper.id.replace(/^paper-/, '');
     const eprint = arxivFor(paper);
     if (eprint && !title.toLocaleLowerCase().includes(eprint.toLocaleLowerCase())) {
       title += ` — arXiv:${eprint}`;
     }
     return title;
   }
+
+  function headingText(element, selector, numberSelector) {
+    const heading = element.querySelector(selector)?.cloneNode(true);
+    heading?.querySelector(numberSelector)?.remove();
+    heading?.querySelector('.collapse-toggle')?.remove();
+    return heading?.textContent.trim() || '';
+  }
+
   function installDetailedToc() {
     const nav = document.querySelector('.toc nav');
     if (!nav) return;
+
     const style = document.createElement('style');
     style.id = 'interactive-notes-style';
     style.textContent = `
@@ -36,16 +54,22 @@
       .toc-section>summary{margin:0;padding:9px 5px;align-items:baseline;letter-spacing:0;font-size:.78rem;color:#344760}
       .toc-section>summary .toc-section-title{font-size:.78rem;letter-spacing:0;font-weight:700;color:#344760}
       .toc-section>summary .toc-section-count{font-size:.68rem;letter-spacing:0;font-weight:500;color:var(--muted);white-space:nowrap}
-      .toc-paper-list{display:grid;gap:1px;margin:0 0 9px 8px;padding:2px 0 2px 9px;border-left:1px solid var(--border)}
-      .toc nav a.toc-paper-link{display:grid;grid-template-columns:2.7rem minmax(0,1fr);justify-content:initial;gap:4px;padding:6px 7px;font-size:.75rem;line-height:1.45;border-radius:5px}
+      .toc-subtopic-list{display:grid;gap:2px;margin:0 0 9px 7px;padding:2px 0 2px 9px;border-left:1px solid var(--border)}
+      .toc-subtopic{padding:1px 0}
+      .toc-subtopic>summary{margin:0;padding:7px 5px;align-items:baseline;letter-spacing:0;color:#455970}
+      .toc-subtopic>summary .toc-subtopic-title{font-size:.74rem;letter-spacing:0;font-weight:650;color:#455970}
+      .toc-subtopic>summary .toc-subtopic-count{font-size:.65rem;letter-spacing:0;font-weight:500;color:var(--muted);white-space:nowrap}
+      .toc-paper-list{display:grid;gap:1px;margin:0 0 7px 7px;padding:2px 0 2px 8px;border-left:1px solid #e5eaf1}
+      .toc nav a.toc-paper-link{display:grid;grid-template-columns:3.5rem minmax(0,1fr);justify-content:initial;gap:4px;padding:6px 7px;font-size:.72rem;line-height:1.45;border-radius:5px}
       .toc-paper-number{color:var(--blue);font-variant-numeric:tabular-nums;white-space:nowrap}
       .toc-paper-title{min-width:0;overflow-wrap:anywhere}
       .toc nav a.toc-reference-link{margin-top:10px;border-top:1px solid var(--border);border-radius:0;padding-top:12px}
-      .topic>h2{display:flex;align-items:baseline;gap:7px}
+      .topic>h2,.subtopic>h3{display:flex;align-items:baseline;gap:7px}
       .collapse-toggle{margin-left:auto;flex:0 0 auto;width:32px;height:32px;padding:0;border:1px solid var(--border);border-radius:6px;background:white;color:#52627a;font-size:1rem;line-height:1;display:inline-grid;place-items:center}
       .collapse-toggle:hover{background:var(--soft);border-color:#a9bfdc;color:var(--blue)}
       .paper-heading>.collapse-toggle{align-self:flex-start;margin-top:1px}
       .topic[data-collapsed="true"]>:not(h2){display:none!important}
+      .subtopic[data-collapsed="true"]>:not(h3){display:none!important}
       .paper[data-collapsed="true"]>:not(.paper-heading){display:none!important}
       .paper[data-collapsed="true"]{padding-top:18px;padding-bottom:18px}
       .paper[data-collapsed="true"] .paper-heading{align-items:center}
@@ -53,57 +77,91 @@
         .toc nav{display:block}
         .toc-section>summary{padding:10px 5px;font-size:.8rem}
         .toc-section>summary .toc-section-title{font-size:.8rem}
-        .toc nav a.toc-paper-link{grid-template-columns:2.65rem minmax(0,1fr);font-size:.77rem;padding:7px 5px}
+        .toc-subtopic>summary .toc-subtopic-title{font-size:.77rem}
+        .toc nav a.toc-paper-link{grid-template-columns:3.45rem minmax(0,1fr);font-size:.74rem;padding:7px 5px}
         .collapse-toggle{width:34px;height:34px}
       }
       @media print{
         .collapse-toggle{display:none!important}
-        .topic[data-collapsed="true"]>:not(h2),.paper[data-collapsed="true"]>:not(.paper-heading){display:revert!important}
+        .topic[data-collapsed="true"]>:not(h2),
+        .subtopic[data-collapsed="true"]>:not(h3),
+        .paper[data-collapsed="true"]>:not(.paper-heading){display:revert!important}
       }
     `;
     document.head.append(style);
     nav.replaceChildren();
+
     sections.forEach((section, sectionIndex) => {
-      const number = String(sectionIndex + 1);
-      const numberNode = section.querySelector('.section-number');
-      if (numberNode) numberNode.textContent = number;
-      const heading = section.querySelector('h2');
-      const headingCopy = heading?.cloneNode(true);
-      headingCopy?.querySelector('.section-number')?.remove();
-      const sectionTitle = headingCopy?.textContent.trim() || `Section ${number}`;
+      const sectionNumber = String(sectionIndex + 1);
+      const numberNode = section.querySelector(':scope > h2 .section-number');
+      if (numberNode) numberNode.textContent = sectionNumber;
+      const sectionTitle = headingText(section, ':scope > h2', '.section-number') || `Section ${sectionNumber}`;
       const sectionPapers = [...section.querySelectorAll('.paper')];
-      const details = document.createElement('details');
-      details.className = 'toc-section';
-      details.dataset.section = section.id;
-      details.open = !narrow.matches;
-      const summary = document.createElement('summary');
-      const label = document.createElement('span');
-      label.className = 'toc-section-title';
-      label.textContent = `${number} ${sectionTitle}`;
-      const count = document.createElement('span');
-      count.className = 'toc-section-count';
-      count.textContent = `${sectionPapers.length} papers`;
-      summary.append(label, count);
-      details.append(summary);
-      const list = document.createElement('div');
-      list.className = 'toc-paper-list';
-      sectionPapers.forEach((paper, paperIndex) => {
-        const link = document.createElement('a');
-        link.className = 'toc-paper-link';
-        link.href = `#${paper.id}`;
-        const paperNumber = document.createElement('span');
-        paperNumber.className = 'toc-paper-number';
-        paperNumber.textContent = paper.querySelector('.paper-number')?.textContent.trim() || `${number}.${paperIndex + 1}`;
-        const title = document.createElement('span');
-        title.className = 'toc-paper-title';
-        title.textContent = paperTocTitle(paper);
-        link.append(paperNumber, title);
-        list.append(link);
+
+      const sectionDetails = document.createElement('details');
+      sectionDetails.className = 'toc-section';
+      sectionDetails.dataset.section = section.id;
+      sectionDetails.open = !narrow.matches;
+      const sectionSummary = document.createElement('summary');
+      const sectionLabel = document.createElement('span');
+      sectionLabel.className = 'toc-section-title';
+      sectionLabel.textContent = `${sectionNumber} ${sectionTitle}`;
+      const sectionCount = document.createElement('span');
+      sectionCount.className = 'toc-section-count';
+      sectionCount.textContent = `${sectionPapers.length} papers`;
+      sectionSummary.append(sectionLabel, sectionCount);
+      sectionDetails.append(sectionSummary);
+
+      const subtopicList = document.createElement('div');
+      subtopicList.className = 'toc-subtopic-list';
+      const sectionSubtopics = [...section.querySelectorAll(':scope > .subtopic')];
+      sectionSubtopics.forEach((subtopic, subtopicIndex) => {
+        const subtopicNumber = `${sectionNumber}.${subtopicIndex + 1}`;
+        const subNumberNode = subtopic.querySelector(':scope > h3 .subtopic-number');
+        if (subNumberNode) subNumberNode.textContent = subtopicNumber;
+        const subtopicTitle = headingText(subtopic, ':scope > h3', '.subtopic-number') || `Subtopic ${subtopicNumber}`;
+        const subtopicPapers = [...subtopic.querySelectorAll(':scope > .paper')];
+
+        const subDetails = document.createElement('details');
+        subDetails.className = 'toc-subtopic';
+        subDetails.dataset.subtopic = subtopic.id;
+        subDetails.open = !narrow.matches;
+        const subSummary = document.createElement('summary');
+        const subLabel = document.createElement('span');
+        subLabel.className = 'toc-subtopic-title';
+        subLabel.textContent = `${subtopicNumber} ${subtopicTitle}`;
+        const subCount = document.createElement('span');
+        subCount.className = 'toc-subtopic-count';
+        subCount.textContent = `${subtopicPapers.length}`;
+        subSummary.append(subLabel, subCount);
+        subDetails.append(subSummary);
+
+        const paperList = document.createElement('div');
+        paperList.className = 'toc-paper-list';
+        subtopicPapers.forEach((paper, paperIndex) => {
+          const link = document.createElement('a');
+          link.className = 'toc-paper-link';
+          link.href = `#${paper.id}`;
+          const paperNumber = document.createElement('span');
+          paperNumber.className = 'toc-paper-number';
+          paperNumber.textContent = paper.querySelector('.paper-number')?.textContent.trim()
+            || `${subtopicNumber}.${paperIndex + 1}`;
+          const title = document.createElement('span');
+          title.className = 'toc-paper-title';
+          title.textContent = paperTocTitle(paper);
+          link.append(paperNumber, title);
+          paperList.append(link);
+        });
+        subDetails.append(paperList);
+        subtopicList.append(subDetails);
+        tocGroups.set(subtopic.id, subDetails);
       });
-      details.append(list);
-      nav.append(details);
-      tocGroups.set(section.id, details);
+
+      sectionDetails.append(subtopicList);
+      nav.append(sectionDetails);
+      tocGroups.set(section.id, sectionDetails);
     });
+
     const referenceLink = document.createElement('a');
     referenceLink.className = 'toc-reference-link';
     referenceLink.href = '#references';
@@ -119,13 +177,14 @@
 
   function targetLabel(target) {
     if (target.classList.contains('paper')) {
-      return target.querySelector('h3')?.textContent.trim() || 'この論文';
+      return paperTitleNode(target)?.textContent.trim() || 'この論文';
     }
-    const heading = target.querySelector(':scope > h2')?.cloneNode(true);
-    heading?.querySelector('.section-number')?.remove();
-    heading?.querySelector('.collapse-toggle')?.remove();
-    return heading?.textContent.trim() || 'このセクション';
+    if (target.classList.contains('subtopic')) {
+      return headingText(target, ':scope > h3', '.subtopic-number') || 'この小テーマ';
+    }
+    return headingText(target, ':scope > h2', '.section-number') || 'このセクション';
   }
+
   function collapseButton(target, kind) {
     const button = document.createElement('button');
     button.type = 'button';
@@ -138,11 +197,20 @@
     });
     return button;
   }
+
+  function toggleFor(target) {
+    if (target.classList.contains('paper')) {
+      return target.querySelector(':scope > .paper-heading > .paper-toggle');
+    }
+    if (target.classList.contains('subtopic')) {
+      return target.querySelector(':scope > h3 > .subtopic-toggle');
+    }
+    return target.querySelector(':scope > h2 > .section-toggle');
+  }
+
   function setCollapsed(target, collapsed) {
     target.dataset.collapsed = collapsed ? 'true' : 'false';
-    const button = target.classList.contains('paper')
-      ? target.querySelector(':scope > .paper-heading > .paper-toggle')
-      : target.querySelector(':scope > h2 > .section-toggle');
+    const button = toggleFor(target);
     if (!button) return;
     const label = targetLabel(target);
     button.textContent = collapsed ? '▸' : '▾';
@@ -150,12 +218,19 @@
     button.setAttribute('aria-label', `${label}を${collapsed ? '展開' : '閉じる'}`);
     button.title = collapsed ? '展開する' : '閉じる';
   }
+
   function installCollapsibles() {
     sections.forEach(section => {
       const heading = section.querySelector(':scope > h2');
       if (!heading || heading.querySelector('.section-toggle')) return;
       heading.append(collapseButton(section, 'section'));
       setCollapsed(section, false);
+    });
+    subtopics.forEach(subtopic => {
+      const heading = subtopic.querySelector(':scope > h3');
+      if (!heading || heading.querySelector('.subtopic-toggle')) return;
+      heading.append(collapseButton(subtopic, 'subtopic'));
+      setCollapsed(subtopic, false);
     });
     papers.forEach(paper => {
       const heading = paper.querySelector(':scope > .paper-heading');
@@ -168,25 +243,39 @@
 
   function expandTarget(target) {
     const parentTopic = target.classList.contains('topic') ? target : target.closest('.topic');
+    const parentSubtopic = target.classList.contains('subtopic') ? target : target.closest('.subtopic');
     if (parentTopic) setCollapsed(parentTopic, false);
+    if (parentSubtopic) setCollapsed(parentSubtopic, false);
     if (target.classList.contains('paper')) setCollapsed(target, false);
   }
 
-  const normalize = s => s.normalize('NFKC').toLocaleLowerCase();
-  const index = new Map([...papers, ...references].map(el => [el, normalize(el.textContent + ' ' + el.dataset.key)]));
+  const normalize = value => value.normalize('NFKC').toLocaleLowerCase();
+  const index = new Map(
+    [...papers, ...references].map(element => [
+      element,
+      normalize(element.textContent + ' ' + element.dataset.key),
+    ]),
+  );
+
   let toastTimer;
   function announce(text) {
-    const el = document.getElementById('toast');
-    el.textContent = text; el.classList.add('show');
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+    const element = document.getElementById('toast');
+    element.textContent = text;
+    element.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => element.classList.remove('show'), 2400);
   }
+
   function manualCopy(text) {
     const dialog = document.getElementById('copy-dialog');
     const area = document.getElementById('copy-text');
     area.value = text;
     if (!dialog.open) dialog.showModal();
-    area.focus(); area.select(); area.setSelectionRange(0, text.length);
+    area.focus();
+    area.select();
+    area.setSelectionRange(0, text.length);
   }
+
   document.querySelectorAll('[data-copy]').forEach(button => {
     const key = button.dataset.key;
     if (!Object.hasOwn(data, key)) return;
@@ -195,69 +284,123 @@
       const mode = button.dataset.copy;
       const text = mode === 'bib' ? data[key] : mode === 'cite' ? `\\cite{${key}}` : key;
       try {
-        if (!navigator.clipboard || !window.isSecureContext) throw new Error('Clipboard API unavailable');
+        if (!navigator.clipboard || !window.isSecureContext) {
+          throw new Error('Clipboard API unavailable');
+        }
         await navigator.clipboard.writeText(text);
-        announce(mode === 'bib' ? 'BibTeXをコピーしました' : mode === 'cite' ? '\\cite{…}をコピーしました' : 'Citation keyをコピーしました');
-      } catch (_) { manualCopy(text); }
+        announce(
+          mode === 'bib'
+            ? 'BibTeXをコピーしました'
+            : mode === 'cite'
+              ? '\\cite{…}をコピーしました'
+              : 'Citation keyをコピーしました',
+        );
+      } catch (_) {
+        manualCopy(text);
+      }
     });
   });
+
   function filter() {
     const terms = normalize(search.value.trim()).split(/\s+/).filter(Boolean);
-    const match = el => terms.every(term => index.get(el).includes(term));
+    const match = element => terms.every(term => index.get(element).includes(term));
     const visibleRefs = new Set();
     const filtering = terms.length > 0 || Boolean(topic.value);
     let count = 0;
-    papers.forEach(el => {
-      el.hidden = (topic.value && topic.value !== el.dataset.section) || !match(el);
-      if (!el.hidden) {
-        count++;
-        JSON.parse(el.dataset.refs).forEach(key => visibleRefs.add(key));
-        if (filtering) {
-          setCollapsed(el, false);
-          const parent = el.closest('.topic');
-          if (parent) setCollapsed(parent, false);
-        }
+
+    papers.forEach(element => {
+      element.hidden = (topic.value && topic.value !== element.dataset.section) || !match(element);
+      if (!element.hidden) {
+        count += 1;
+        JSON.parse(element.dataset.refs).forEach(key => visibleRefs.add(key));
+        if (filtering) expandTarget(element);
       }
     });
-    sections.forEach(el => {el.hidden = ![...el.querySelectorAll('.paper')].some(p => !p.hidden);});
-    let refCount = 0;
-    references.forEach(el => {
-      const referenced = visibleRefs.has(el.dataset.key);
-      el.hidden = topic.value ? !referenced : terms.length ? !(referenced || match(el)) : false;
-      if (!el.hidden) refCount++;
+
+    subtopics.forEach(element => {
+      element.hidden = ![...element.querySelectorAll(':scope > .paper')].some(paper => !paper.hidden);
     });
+    sections.forEach(element => {
+      element.hidden = ![...element.querySelectorAll('.paper')].some(paper => !paper.hidden);
+    });
+
+    let refCount = 0;
+    references.forEach(element => {
+      const referenced = visibleRefs.has(element.dataset.key);
+      element.hidden = topic.value ? !referenced : terms.length ? !(referenced || match(element)) : false;
+      if (!element.hidden) refCount += 1;
+    });
+
     document.getElementById('references').hidden = refCount === 0;
     document.getElementById('empty').hidden = count > 0 || refCount > 0;
-    document.getElementById('result-count').textContent = `${count} / ${papers.length} 論文 · ${refCount} 参考文献`;
+    document.getElementById('result-count').textContent =
+      `${count} / ${papers.length} 論文 · ${refCount} 参考文献`;
   }
+
   search.addEventListener('input', filter);
   topic.addEventListener('change', filter);
-  document.getElementById('reset').addEventListener('click', () => {search.value = ''; topic.value = ''; filter(); search.focus();});
+  document.getElementById('reset').addEventListener('click', () => {
+    search.value = '';
+    topic.value = '';
+    filter();
+    search.focus();
+  });
+
   function revealHash() {
     let id;
-    try {id = decodeURIComponent(location.hash.slice(1));} catch (_) {return;}
-    const el = document.getElementById(id) || document.getElementById('paper-' + id);
-    if (!el) return;
-    if (el.hidden || el.closest('[hidden]')) {search.value = ''; topic.value = ''; filter();}
-    expandTarget(el);
-    const parentTopic = el.classList.contains('topic') ? el : el.closest('.topic');
-    if (parentTopic && tocGroups.has(parentTopic.id)) tocGroups.get(parentTopic.id).open = true;
-    requestAnimationFrame(() => el.scrollIntoView({block: 'start', behavior: 'instant'}));
-  }
-  document.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener('click', () => {
-    const hash = link.getAttribute('href');
-    if (hash === '#references' || hash.startsWith('#section-') || hash.startsWith('#ref-')) {
-      search.value = ''; topic.value = ''; filter();
+    try {
+      id = decodeURIComponent(location.hash.slice(1));
+    } catch (_) {
+      return;
     }
-    if (location.hash === hash) setTimeout(revealHash, 0);
-  }));
+    const element = document.getElementById(id) || document.getElementById('paper-' + id);
+    if (!element) return;
+    if (element.hidden || element.closest('[hidden]')) {
+      search.value = '';
+      topic.value = '';
+      filter();
+    }
+    expandTarget(element);
+    const parentTopic = element.classList.contains('topic') ? element : element.closest('.topic');
+    const parentSubtopic = element.classList.contains('subtopic') ? element : element.closest('.subtopic');
+    if (parentTopic && tocGroups.has(parentTopic.id)) tocGroups.get(parentTopic.id).open = true;
+    if (parentSubtopic && tocGroups.has(parentSubtopic.id)) tocGroups.get(parentSubtopic.id).open = true;
+    requestAnimationFrame(() => element.scrollIntoView({block: 'start', behavior: 'instant'}));
+  }
+
+  document.querySelectorAll('a[href^="#"]').forEach(link =>
+    link.addEventListener('click', () => {
+      const hash = link.getAttribute('href');
+      if (
+        hash === '#references'
+        || hash.startsWith('#section-')
+        || hash.startsWith('#subtopic-')
+        || hash.startsWith('#ref-')
+      ) {
+        search.value = '';
+        topic.value = '';
+        filter();
+      }
+      if (location.hash === hash) setTimeout(revealHash, 0);
+    }),
+  );
+
   window.addEventListener('hashchange', revealHash);
   const stamp = document.querySelector('.edition time');
   if (stamp.dateTime && !Number.isNaN(Date.parse(stamp.dateTime))) {
-    stamp.textContent = new Intl.DateTimeFormat('ja-JP', {dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Tokyo'}).format(new Date(stamp.dateTime)) + ' JST';
+    stamp.textContent = new Intl.DateTimeFormat('ja-JP', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+      timeZone: 'Asia/Tokyo',
+    }).format(new Date(stamp.dateTime)) + ' JST';
   }
-  document.getElementById('mathjax-script')?.addEventListener('error', () => {document.getElementById('math-warning').hidden = false;});
-  document.addEventListener('notes-math-ready', () => {if (location.hash) revealHash();});
+  document.getElementById('mathjax-script')?.addEventListener('error', () => {
+    document.getElementById('math-warning').hidden = false;
+  });
+  document.addEventListener('notes-math-ready', () => {
+    if (location.hash) revealHash();
+  });
+
   filter();
   if (location.hash) setTimeout(revealHash, 0);
 })();
@@ -291,8 +434,11 @@
   } catch (_) {}
 
   function writeStored(value) {
-    try { localStorage.setItem(storageKey, String(Math.round(value))); } catch (_) {}
+    try {
+      localStorage.setItem(storageKey, String(Math.round(value)));
+    } catch (_) {}
   }
+
   function applyWidth(value, persist = false) {
     if (!desktop.matches) return;
     const width = clamp(value);
@@ -306,6 +452,7 @@
       writeStored(width);
     }
   }
+
   function restoreWidth() {
     if (!desktop.matches) {
       root.style.removeProperty('--sidebar-width');
@@ -329,16 +476,19 @@
   resizer.addEventListener('pointermove', event => {
     if (dragging) applyWidth(startWidth + event.clientX - startX);
   });
+
   function finishDrag(event) {
     if (!dragging) return;
     dragging = false;
     document.body.classList.remove('sidebar-resizing');
-    if (event?.pointerId != null && resizer.hasPointerCapture(event.pointerId)) resizer.releasePointerCapture(event.pointerId);
+    if (event?.pointerId != null && resizer.hasPointerCapture(event.pointerId)) {
+      resizer.releasePointerCapture(event.pointerId);
+    }
     applyWidth(sidebar.getBoundingClientRect().width, true);
   }
+
   resizer.addEventListener('pointerup', finishDrag);
   resizer.addEventListener('pointercancel', finishDrag);
-
   resizer.addEventListener('keydown', event => {
     if (!desktop.matches) return;
     const current = sidebar.getBoundingClientRect().width;
