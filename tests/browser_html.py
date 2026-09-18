@@ -79,17 +79,19 @@ with sync_playwright() as playwright:
         toc_link = page.locator(f'.toc-paper-link[href="#{paper_id}"]')
         assert toc_link.count() == 1, paper_id
         number = paper.locator('.paper-number').inner_text().strip()
-        assert toc_link.locator('.toc-paper-number').inner_text().strip() == number
+        assert toc_link.locator('.toc-paper-number').text_content().strip() == number
         arxiv_link = paper.locator('.actions a[href*="arxiv.org/abs/"]')
         if arxiv_link.count():
             eprint = arxiv_link.first.get_attribute('href').split('/abs/', 1)[1]
-            assert eprint.lower() in toc_link.inner_text().lower(), (paper_id, eprint)
+            assert eprint.lower() in toc_link.text_content().lower(), (paper_id, eprint)
 
     ice_toc = page.locator('.toc-paper-link', has_text='2608.29746')
-    assert ice_toc.count() == 1 and 'IceCube' in ice_toc.inner_text()
+    assert ice_toc.count() == 1 and 'IceCube' in ice_toc.text_content()
 
+    # Show section and subtopic titles by default, but keep paper lists folded.
     first_toc_section = page.locator('.toc-section').first
     section_open = first_toc_section.evaluate('(element) => element.open')
+    assert section_open is True
     first_toc_section.locator(':scope > summary').click()
     assert first_toc_section.evaluate('(element) => element.open') != section_open
     first_toc_section.locator(':scope > summary').click()
@@ -97,6 +99,7 @@ with sync_playwright() as playwright:
 
     first_toc_subtopic = page.locator('.toc-subtopic').first
     subtopic_open = first_toc_subtopic.evaluate('(element) => element.open')
+    assert subtopic_open is False
     first_toc_subtopic.locator(':scope > summary').click()
     assert first_toc_subtopic.evaluate('(element) => element.open') != subtopic_open
     first_toc_subtopic.locator(':scope > summary').click()
