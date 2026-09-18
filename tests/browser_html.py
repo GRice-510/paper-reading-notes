@@ -158,7 +158,7 @@ with sync_playwright() as playwright:
     ice_search = page.locator('[id="paper-2608.29746"]')
     expect(ice_search).to_be_visible()
     assert 'IceCube' in ice_search.locator('.paper-heading h4').inner_text()
-    expect(ice_search.locator('xpath=ancestor::section[contains(@class,"subtopic")]')).to_be_visible()
+    expect(ice_search.locator('xpath=ancestor::section[contains(concat(" ", normalize-space(@class), " "), " subtopic ")]')).to_be_visible()
     page.locator('#search').fill('zzzznonexistentzzzz')
     assert page.locator('#empty').is_visible()
     page.locator('#reset').click()
@@ -189,8 +189,8 @@ with sync_playwright() as playwright:
 
     # Direct paper links reopen paper, subtopic, section and their TOC groups.
     ice = page.locator('[id="paper-2608.29746"]')
-    ice_subtopic = ice.locator('xpath=ancestor::section[contains(@class,"subtopic")]')
-    ice_section = ice.locator('xpath=ancestor::section[contains(@class,"topic")]')
+    ice_subtopic = ice.locator('xpath=ancestor::section[contains(concat(" ", normalize-space(@class), " "), " subtopic ")]')
+    ice_section = ice.locator('xpath=ancestor::section[contains(concat(" ", normalize-space(@class), " "), " topic ")]')
     if ice.get_attribute('data-collapsed') != 'true':
         ice.locator(':scope > .paper-heading > .paper-toggle').click()
     if ice_subtopic.get_attribute('data-collapsed') != 'true':
